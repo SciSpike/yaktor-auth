@@ -1,0 +1,12 @@
+<form action="<%= action %>" method="post">
+  <div>
+  <%= message %>
+  </div>
+  <div>
+  <label>Email Address:</label>
+  <input type="email" name="email" value="<%= (!!locals.email) ? email : '' %>"/>
+  </div>
+  <div>
+  <input type="submit" value="Submit"/>
+  </div>
+</form>

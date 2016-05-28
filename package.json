@@ -1,0 +1,68 @@
+{
+  "name": "yaktor-auth",
+  "version": "1.0.0-pre.0",
+  "dependencies": {
+    "async": "2.0.0-rc.5",
+    "commander": "2.9.0"
+  },
+  "devDependencies": {
+    "bcrypt": "0.8.6",
+    "body-parser": "1.15.0",
+    "connect-ensure-login": "0.1.1",
+    "connect-flash": "0.1.1",
+    "ejs": "2.4.1",
+    "express": "4.13.4",
+    "express-session": "1.13.0",
+    "grunt": "1.0.1",
+    "grunt-bump": "0.8.0",
+    "grunt-cli": "1.2.0",
+    "grunt-shell": "1.3.0",
+    "jade": "1.11.0",
+    "load-grunt-tasks": "3.5.0",
+    "mocha": "2.4.5",
+    "mockgoose": "6.0.3",
+    "mongoose": "4.4.17",
+    "mongoose-shortid": "^0.5.0",
+    "node-uuid": "1.4.7",
+    "nodemailer": "2.3.2",
+    "oauth2orize": "1.2.2",
+    "passport": "0.3.2",
+    "passport-anonymous": "1.0.1",
+    "passport-http": "0.3.0",
+    "passport-http-bearer": "1.0.1",
+    "passport-local": "1.0.0",
+    "passport-oauth2-client-password": "0.1.2",
+    "passport-oauth2-public-client": "0.1.0",
+    "proxyquire": "1.7.4",
+    "request-context": "0.1.6",
+    "standard": "7.1.0",
+    "standard-format": "2.2.0",
+    "supertest-session": "2.0.1",
+    "winston": "2.2.0",
+    "yaktor": "1.0.0-pre.0",
+    "yaktor-lang": "1.0.0-pre.0"
+  },
+  "scripts": {
+    "patch": "grunt release-patch",
+    "minor": "grunt release-minor",
+    "gen-src": "find . -name '*.cl' -o -name '*.dm' -follow | xargs yaktor-lang",
+    "lint": "standard --verbose",
+    "format": "standard-format -w",
+    "test": "mocha -R spec test/*.test.js && npm run lint"
+  },
+  "author": {
+    "name": "jonathan.kamke",
+    "email": "jonathan.kamke@scispike.com"
+  },
+  "homepage": "https://github.com/SciSpike/engine-auth",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:SciSpike/yaktor-auth.git"
+  },
+  "engines": {
+    "node": ">=4.0.x"
+  },
+  "bin": {
+    "yaktor-auth": "./bin/yaktor-auth.js"
+  }
+}

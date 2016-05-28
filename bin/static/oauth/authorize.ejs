@@ -1,0 +1,10 @@
+<p><b><%= client.name %></b> is requesting access from you (<%= user.id %>).</p>
+<p>Do you wish to:</p>
+
+<form method="post">
+  <input name="transaction_id" type="hidden" value="<%= transactionID %>">
+  <div>
+  <input type="submit" value="Allow" id="allow">
+  <input type="submit" value="Deny" name="cancel" id="deny">
+  </div>
+</form>
