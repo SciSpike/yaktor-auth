@@ -1,22 +1,31 @@
-console.log(new Date(), __filename)
-
+var logger = require('yaktor/logger')
+logger.silly(__filename)
+var path = require('path')
 var nodemailer = require('nodemailer')
 
-// TODO: use app.get('nodemailerService'), etc?
-var service = process.env.NODEMAILER_SERVICE || 'Gmail'
-var user = process.env.NODEMAILER_USER || 'engine-auth@scispike.com'
-var pass = process.env.NODEMAILER_PASS || 'c0Nversation'
-var from = process.env.NODEMAILER_DEFAULT_FROM || user
+module.exports = function (serverName, app, done) {
+  var transport = app.getConfigVal('auth.mail.transport')
+  var service = app.getConfigVal('auth.mail.service')
+  var user = app.getConfigVal('auth.mail.user')
+  var pass = app.getConfigVal('auth.mail.pass')
+  var from = app.getConfigVal('auth.mail.from')
 
-var path = require('path')
-var mailer = require(path.resolve('lib', 'mailer'))
+  var transporter = nodemailer.createTransport(transport, {
+    service: service,
+    auth: {
+      user: user,
+      pass: pass
+    }
+  })
 
-// Create a SMTP transport object
-mailer.transporter = nodemailer.createTransport('SMTP', {
-  service: service,
-  auth: {
-    user: user,
-    pass: pass
+  app.authMailer = {
+    sendMail: function () {
+      transporter.sendMail.apply(transporter, arguments)
+    },
+    get defaultFrom () {
+      return from
+    }
   }
-})
-mailer.defaultFrom = from
+
+  done && done()
+}

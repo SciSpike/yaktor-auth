@@ -1,3 +1,5 @@
+var logger = require('yaktor/logger')
+logger.silly(__filename)
 var async = require('async')
 var oauth2orize = require('oauth2orize')
 var passport = require('passport')
@@ -24,8 +26,8 @@ var PUBLIC_REFRESH_TOKEN_TTL = 60 * 10
 var CODE_TTL = 60 * 2
 var DEFAULT_ACCESS_REQUIREMENT = 'ANONYMOUS'
 var messageService = require('yaktor/app/services/messageService')
-console.log(new Date(), __filename)
-// ///UTILS
+
+// UTILS
 var urlSafe = function (s) {
   return s.replace(/\+/g, '-').replace(/\//g, '_')
 }
@@ -153,7 +155,7 @@ var tokenAuthenticate = function (accessToken, done) {
 var userPasswordChecker = getAuthFunction(UserInfo, 'password', '_id', false)
 var clientPasswordChecker = getAuthFunction(AccessClient, 'clientSecret', '_id', true)
 
-// ///Strategy
+// Strategy
 var accessResolution = {
   ANONYMOUS: function (req, cb) {
     cb(true)
@@ -231,7 +233,7 @@ YaktorAuthorizationStrategy.prototype.authenticate = function (req, options) {
   })
 }
 
-// ///PASSPORT
+// PASSPORT
 // suppress unwanted auth challenge
 BasicStrategy.prototype._challenge = function () {
   return null
@@ -240,7 +242,6 @@ passport.use(new BasicStrategy(userPasswordChecker))
 passport.use(new LocalStrategy(userPasswordChecker))
 passport.use('client-basic', new BasicStrategy(clientPasswordChecker))
 passport.use(new ClientPasswordStrategy(clientPasswordChecker))
-
 passport.use(new PublicClientStrategy(function (client, done) {
   if (client === '0') {
     return done(null, {
@@ -294,7 +295,7 @@ passport.deserializeUser(function (id, cb) {
   UserInfo.findById(id, cb)
 })
 
-// ///Oauth2orize
+// Oauth2orize
 var server = passport.oauthServer = oauth2orize.createServer()
 
 server.serializeClient(function (client, done) {
@@ -403,17 +404,17 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
   })
 }))
 
-// ///Endpoints
-module.exports = function () {
-  var app = this
+// Endpoints
+module.exports = function (serverName, app, done) {
   var yaktor = app.yaktor
   yaktor.issueToken = issueToken
   yaktor.getCode = getCode
   yaktor.oauthServer = server
   yaktor.tokenAuthenticate = tokenAuthenticate
-  // MUST use passport before any routes otherwise it wont' be there
+  // MUST use passport before any routes otherwise it won't be there
   app.use(passport.initialize())
   app.use(passport.authenticate([ 'bearer' ], {
     session: false
   }))
+  done && done()
 }

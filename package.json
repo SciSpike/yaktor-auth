@@ -40,7 +40,7 @@
     "standard-format": "2.2.0",
     "supertest-session": "2.0.1",
     "winston": "2.2.0",
-    "yaktor": "1.0.0-pre.0",
+    "yaktor": "1.0.0-pre.1",
     "yaktor-lang": "1.0.0-pre.0"
   },
   "scripts": {
