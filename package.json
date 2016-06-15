@@ -3,7 +3,8 @@
   "version": "1.0.0-pre.1",
   "dependencies": {
     "async": "2.0.0-rc.5",
-    "commander": "2.9.0"
+    "commander": "2.9.0",
+    "fs-extra": "0.30.0"
   },
   "devDependencies": {
     "bcrypt": "0.8.6",

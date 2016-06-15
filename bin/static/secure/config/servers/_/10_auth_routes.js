@@ -11,7 +11,7 @@ var PASSWORD_RESET_URL = '/auth/reset'
 var REQUEST_PASSWORD_RESET_URL = '/auth/reset/request'
 var path = require('path')
 var async = require('async')
-var passwordResetService = require('../../lib/passwordResetService')
+var passwordResetService = require('../.././passwordResetService')
 console.log(new Date(), __filename)
 // ///Endpoints
 module.exports = function (done) {
