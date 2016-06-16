@@ -1,18 +1,45 @@
 /* global describe, it, before  */
+var path = require('path')
+var serverName = 'test'
+var configPrefix = 'yaktor.servers.' + serverName + '.'
+var serverCfg = {
+  auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
+  path: {
+    actionsPath: 'actions'
+  }
+}
+var cfg = {
+  yaktor: {
+    log: {
+      stdout: true,
+      level: 'info',
+      filename: ''
+    },
+    servers: {}
+  }
+}
+cfg.yaktor.servers[ serverName ] = serverCfg
+process.env.NODE_CONFIG = JSON.stringify(cfg)
 
 var assert = require('assert')
 var express = require('express')
 var session = require('express-session')
-var path = require('path')
 var async = require('async')
 var flash = require('connect-flash')
 var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
-
+var config = require('config')
 app.yaktor = {}
+app.getConfigVal = function (val) {
+  return config.get(configPrefix + val)
+}
+app.hasConfigVal = function (val) {
+  return config.has(configPrefix + val)
+}
+
 app.set('actionsPath', path.resolve('actions'))
-app.set('views', path.join(__dirname, '/../bin/static'))
+app.set('views', path.join(__dirname, '/../bin/static/secure'))
 app.use(bodyParser.urlencoded({
   extended: true
 }))
@@ -35,13 +62,12 @@ var bind = function (object, method) {
 var Session = require('supertest-session')
 var fakePath = {
   join: path.join,
-  resolve: function (p) {
-    if (Array.prototype.join.call(arguments, '').match(/(oauth)|(mailer)/)) {
-      var a = [ 'bin', 'static' ].concat([].splice.call(arguments, 0))
-      return path.resolve.apply(path, a)
-    } else {
-      return path.resolve.apply(path, arguments)
+  resolve: function () {
+    var a = arguments
+    if (Array.prototype.join.call(arguments, '').match(/oauth/)) {
+      a = [ 'bin', 'static', 'secure' ].concat([].splice.call(arguments, 0))
     }
+    return path.resolve.apply(path, a)
   }
 }
 var PasswordResetInfo
@@ -57,11 +83,14 @@ describe(
         var mongoose = mm.mongoose
         UserInfo = mongoose.model('UserInfo')
         PasswordResetInfo = mongoose.model('PasswordResetInfo')
-        proxyquire(path.resolve('bin', 'static', 'config', 'initializers', '06_auth_middleware'), {}).call(app)
-        proxyquire(path.resolve('bin', 'static', 'config', 'initializers', '10_auth_routes'), { path: fakePath }).bind(app)(function (err) {
-          if (err) done(err)
-        })
-        proxyquire(path.resolve('bin', 'static', 'config', 'initializers', '11_email'), { path: fakePath })
+        async.eachSeries([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ],
+          function (mod, next) {
+            var init = proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', mod), { path: fakePath })
+            init(serverName, app, next)
+          },
+          function (err) {
+            if (err) return done(err)
+          })
         var userInfo = new UserInfo({
           _id: userId,
           name: userId,

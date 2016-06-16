@@ -1,4 +1,13 @@
 /* global describe, it, before */
+process.env.NODE_CONFIG = JSON.stringify({
+  yaktor: {
+    log: {
+      stdout: true,
+      level: 'info',
+      filename: ''
+    }
+  }
+})
 
 var path = require('path')
 var assert = require('assert')
@@ -9,6 +18,7 @@ var yaktor = {}
 var app = {
   yaktor: yaktor
 }
+var serverName = 'test'
 var bind = function (object, method) {
   return object[ method ].bind(object)
 }
@@ -24,35 +34,38 @@ describe('c.security', function () {
     connector.connect(true, function (err, mm) {
       if (err) done(err)
       require(path.resolve('src-gen', 'modelAll'))
-      require(path.resolve('bin', 'static', 'config', 'initializers', '10_conversation_auth')).call(app)
-      var mongoose = mm.mongoose
-      var UserInfo = mongoose.model('UserInfo')
-      var Role = mongoose.model('Role')
+      require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_conversation_auth'))(serverName, app, function (err) {
+        if (err) return done(err)
 
-      async.parallel([
-        function (next) {
-          var obj = new UserInfo(userInfo)
-          bind(obj, 'save')
-          obj.save(next)
-        },
-        function (next) {
-          var obj = new Role({
-            'path': ',1,',
-            'depth': 1,
-            '_id': '1',
-            'accessControlEntries': [ {
-              action: {
-                'path': 'test.test',
-                'methods': [ 'send' ]
-              },
-              'access': 'GRANTED'
-            } ]
-          })
-          bind(obj, 'save')
-          obj.save(next)
-        }
-      ], function (err) {
-        done(err)
+        var mongoose = mm.mongoose
+        var UserInfo = mongoose.model('UserInfo')
+        var Role = mongoose.model('Role')
+
+        async.parallel([
+          function (next) {
+            var obj = new UserInfo(userInfo)
+            bind(obj, 'save')
+            obj.save(next)
+          },
+          function (next) {
+            var obj = new Role({
+              'path': ',1,',
+              'depth': 1,
+              '_id': '1',
+              'accessControlEntries': [ {
+                action: {
+                  'path': 'test.test',
+                  'methods': [ 'send' ]
+                },
+                'access': 'GRANTED'
+              } ]
+            })
+            bind(obj, 'save')
+            obj.save(next)
+          }
+        ], function (err) {
+          done(err)
+        })
       })
     })
   })

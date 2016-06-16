@@ -9,6 +9,7 @@
   "devDependencies": {
     "bcrypt": "0.8.6",
     "body-parser": "1.15.0",
+    "config": "1.20.1",
     "connect-ensure-login": "0.1.1",
     "connect-flash": "0.1.1",
     "ejs": "2.4.1",
@@ -49,7 +50,8 @@
     "gen-src": "find . -name '*.cl' -o -name '*.dm' -follow | xargs yaktor-lang",
     "lint": "standard --verbose",
     "format": "standard-format -w",
-    "test": "mocha -R spec test/*.test.js && npm run lint"
+    "test": "mocha -R spec test/*.test.js && npm run lint",
+    "postinstall": "npm install --save-dev config@$(node -e \"console.log(require(require('path').resolve('node_modules','yaktor','package.json')).dependencies['config'])\") # hack to match yaktor's config dependency"
   },
   "author": {
     "name": "jonathan.kamke",

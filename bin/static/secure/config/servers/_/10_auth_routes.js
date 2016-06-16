@@ -1,6 +1,5 @@
 var logger = require('yaktor/logger')
 logger.silly(__filename)
-var config = require('config')
 var login = require('connect-ensure-login')
 var passport = require('passport')
 var mongoose = require('mongoose')
@@ -8,12 +7,11 @@ var AccessClient = mongoose.model('AccessClient')
 
 var path = require('path')
 var async = require('async')
-var passwordResetService = require('../.././passwordResetService')
-
 // Endpoints
 module.exports = function (serverName, app, done) {
   var yaktor = app.yaktor
   var server = yaktor.oauthServer
+  var passwordResetService = app.passwordResetService
 
   var loginUrl = app.getConfigVal('auth.url.login')
   var logoutUrl = app.getConfigVal('auth.url.logout')
@@ -258,7 +256,7 @@ module.exports = function (serverName, app, done) {
   // FROM HERE ALL ROUTES ARE SECURED //
   // ////////////////////////////////////
 
-  var actions = require(app.getConfigVal('path.actionsPath'))
+  var actions = require(path.resolve(app.getConfigVal('path.actionsPath')))
   var regexes = Object.keys(actions).map(function (p) {
     var rx = new RegExp(p)
     rx.accessRequirements = actions[ p ]

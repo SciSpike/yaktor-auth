@@ -1,6 +1,5 @@
 var logger = require('yaktor/logger')
 logger.silly(__filename)
-var path = require('path')
 var nodemailer = require('nodemailer')
 
 module.exports = function (serverName, app, done) {

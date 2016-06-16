@@ -8,7 +8,7 @@ module.exports = {
     token: '/auth/token',
     register: '/auth/register',
     reset: '/auth/reset',
-    requestReset: '/auth/reset/request',
+    resetRequest: '/auth/reset/request'
   },
   mail: {
     transport: 'SMTP',
