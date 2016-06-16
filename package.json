@@ -50,8 +50,7 @@
     "gen-src": "find . -name '*.cl' -o -name '*.dm' -follow | xargs yaktor-lang",
     "lint": "standard --verbose",
     "format": "standard-format -w",
-    "test": "mocha -R spec test/*.test.js && npm run lint",
-    "postinstall": "npm install --save-dev config@$(node -e \"console.log(require(require('path').resolve('node_modules','yaktor','package.json')).dependencies['config'])\") # hack to match yaktor's config dependency"
+    "test": "mocha -R spec test/*.test.js && npm run lint"
   },
   "author": {
     "name": "jonathan.kamke",
