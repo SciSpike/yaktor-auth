@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-// ////////////////////////
-// BEGIN AUTH SEED DATA //
-// ////////////////////////
-var accessClient = {
+/************************/
+/* BEGIN AUTH SEED DATA */
+/************************/
+var accessClients = [ {
   _id: '1',
   name: 'test'
-}
+} ]
 
 var roles = [ {
   'path': ',allAdmin,',
@@ -85,74 +85,79 @@ var users = [ {
     'zipCode': '22222'
   }
 } ]
-// //////////////////////
-// END AUTH SEED DATA //
-// //////////////////////
+/**********************/
+/* END AUTH SEED DATA */
+/**********************/
+
+function rxify (str) {
+  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\^\$\|\\]/g, '\\$&');
+}
 
 process.on('uncaughtException', function (err) {
   console.log(err.stack)
 })
 var path = require('path')
 var async = require('async')
-var mongoose = require('mongoose')
 
-require(path.join('config', 'global', '02_mongo.js'))
-require(path.join('config', 'global', '03_schema.js'))
-var converter = require(path.resolve('node_modules', 'yaktor', 'app', 'services', 'conversionService'))
-var Role = require('./src-gen/role.js').Role
-var UserInfo = mongoose.model('UserInfo')
-var AccessClient = mongoose.model('AccessClient')
+async.eachSeries([ '02_mongo', '03_schema' ], function (it, next) {
+  require(path.resolve('config', 'global', it))({}, next)
+}, function (err) {
+  if (err) return process.exit(1)
 
-var seed = function (done) {
-  async.series([
-    // remove
-    function (next) {
-      async.parallel([
-        async.apply(AccessClient.remove.bind(AccessClient), {
-          _id: accessClient._id
-        }),
-        async.apply(Role.remove.bind(Role), {
-          path: new RegExp('^[' + roles.map(function (r) { return r.path }).join('|') + ']$')
-        }),
-        function (callback) {
-          UserInfo.remove({
-            _id: { $in: users.map(function (u) { return u.email }) }
-          }, callback)
-        }
-      ], next)
-    },
-    // add
-    function (next) {
-      async.series([
-        function (next) {
-          new AccessClient(accessClient).save(next)
-        },
-        function (next) {
-          async.each(roles, function (role, next) {
-            converter.fromDto('OAuth2.Role', role, function (err, role) {
-              if (err) {
-                return next(err)
-              }
-              role.save(next)
-            })
-          }, next)
-        },
-        function (next) {
-          async.each(users,
-            function (userInfo, next) {
-              converter.fromDto('OAuth2.UserInfo', userInfo, function (err, userInfo) {
+  var converter = require(path.resolve('node_modules', 'yaktor', 'app', 'services', 'conversionService'))
+  var mongoose = require('mongoose')
+  var Role = mongoose.model('Role')
+  var UserInfo = mongoose.model('UserInfo')
+  var AccessClient = mongoose.model('AccessClient')
+
+  var seed = function (done) {
+    async.series([
+      // remove
+      function (next) {
+        async.parallel([ function (next) {
+          AccessClient.remove({ _id: { $in: accessClients.map(function (ac) { return ac._id }) } }, next)
+        }, function (next) {
+          Role.remove({ path: new RegExp('[' + roles.map(function (r) { return rxify(r.path) }).join('|') + ']') }, next)
+        }, function (next) {
+          UserInfo.remove({ _id: { $in: users.map(function (u) { return u.email }) } }, next)
+        } ], next)
+      },
+      // add
+      function (next) {
+        async.series([
+          function (next) {
+            async.each(accessClients, function (accessClient, next) {
+              new AccessClient(accessClient).save(next)
+            }, next)
+          },
+          function (next) {
+            async.each(roles, function (role, next) {
+              converter.fromDto('OAuth2.Role', role, function (err, role) {
                 if (err) {
                   return next(err)
                 }
-                userInfo.save(next)
+                role.save(next)
               })
             }, next)
-        }
-      ], next)
-    }
-  ], done)
-}
+          },
+          function (next) {
+            async.each(users,
+              function (userInfo, next) {
+                converter.fromDto('OAuth2.UserInfo', userInfo, function (err, userInfo) {
+                  if (err) {
+                    return next(err)
+                  }
+                  userInfo.save(next)
+                })
+              }, next)
+          }
+        ], next)
+      }
+    ], done)
+  }
 
-seed(function (err) {
-  process.exit(err ? 1 : 0)
+  seed(function (err) {
+    console.log(err)
+    process.exit(err ? 1 : 0)
+  })
 })
