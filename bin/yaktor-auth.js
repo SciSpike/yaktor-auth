@@ -7,6 +7,7 @@ var path = require('path')
 var util = require('util')
 var fs = require('fs-extra')
 var cp = require('child_process')
+var async = require('async')
 
 var packageJson = require('../package.json')
 var reqDeps = [ 'bcrypt',
@@ -56,8 +57,14 @@ var secure = function (appDir, options) {
   fs.copySync(staticDir, appDir, { clobber: options.force })
   moveServerConfigFiles(appDir, options.server || 'DEFAULT')
 
-  exec('npm', [ 'install' ], function (err) {
-    process.exit(err)
+  async.series([ function (next) {
+    exec('npm', [ 'install' ], next)
+  }, function (next) {
+    if (options.nogensrc) return next()
+    exec('npm', [ 'run', 'gen-src' ], next)
+  } ], function (err) {
+    if (err) console.log(err)
+    process.exit(err ? 1 : 0)
   })
 }
 
@@ -70,6 +77,7 @@ var organize = function (appDir, options) {
 argv.command('secure [path]')
   .description('adds/updates auth security to your app at [path]')
   .option('-s, --server <server>', 'server name; default is DEFAULT', 'DEFAULT')
+  .option('-n, --nogensrc', 'do not generate sources')
   .option('-f, --force', 'resistance is futile')
   .action(function (appDir, options) {
     console.log('securing %s', appDir || './')
