@@ -4,7 +4,7 @@ var logger = require(path.resolve('node_modules/yaktor/logger'))
 var contextService = require('request-context')
 var passport = require('passport')
 var Organization = require('mongoose').model('Organization')
-var Response = require('conversation/app/services/rest/Response')
+var Response = require('yaktor/app/services/rest/Response')
 Response.Failure = function (err) {
   console.log(err)
   this.status = Response.FAILURE
@@ -14,9 +14,8 @@ Response.Failure = function (err) {
 
 logger.silly(__filename)
 
-module.exports = function () {
-  var app = this
-  var express = app.get('express')
+module.exports = function (serverName, app, done) {
+  var express = require('express')
   var tenant = express.Router({ mergeParams: true })
   app.use('/organization/:tenant', tenant)
   app.use('/organizations', contextService.middleware('request'))
@@ -43,7 +42,7 @@ module.exports = function () {
   // ////////////////////////////////////
   // FROM HERE ALL ROUTES ARE SECURED //
   // ////////////////////////////////////
-  var actions = require(app.get('actionsPath'))
+  var actions = require(path.resolve(app.getConfigVal('path.actionsPath')))
   var regexes = Object.keys(actions).map(function (p) {
     return new RegExp(p)
   })
@@ -52,12 +51,14 @@ module.exports = function () {
     regexes: regexes
   }))
 
-  var routes = app.get('routesPath')
+  var routes = path.resolve(app.getConfigVal('path.routesPath'))
   if (fs.existsSync(routes)) {
     fs.readdirSync(routes).forEach(function (file) {
       var item = path.join(routes, file)
-      var daRoute = require(item)
-      daRoute(tenant)
+      var route = require(item)
+      route(tenant)
     })
   }
+
+  done && done()
 }

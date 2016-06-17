@@ -34,44 +34,57 @@ reqDeps.forEach(function (dep) {
 })
 var dir = process.cwd()
 
-var moveServerConfigFiles = function (appDir, serverName) {
+var moveServerConfigFiles = function (appDir, options, done) {
+  var serverName = options.server || 'DEFAULT'
   var src = path.join(appDir, 'config', 'servers', '_')
   var dst = path.join(appDir, 'config', 'servers', serverName)
-  fs.readdirSync(src).forEach(function (file) {
-    var filepath = path.join(src, file)
-    var stats = fs.lstatSync(filepath)
-    if (stats.isDirectory() || stats.isFile()) fs.copySync(filepath, path.join(dst, file))
-  })
-  fs.removeSync(src)
+  async.waterfall([ function (next) {
+    fs.readdir(src, next)
+  }, function (files, next) {
+    async.each(files, function (file, next) {
+      var filepath = path.join(src, file)
+      var stats = fs.lstatSync(filepath)
+      if (stats.isDirectory() || stats.isFile())
+        fs.copy(filepath, path.join(dst, file), { clobber: options.force }, next)
+      else
+        next()
+    }, next)
+  }, function (next) {
+    fs.remove(src, next)
+  } ], done)
 }
 
-var secure = function (appDir, options) {
-  // Read this file first. It will throw if you are in an empty dir (which is on purpose).
-  var theirPackageJson = JSON.parse(fs.readFileSync(path.join(appDir, 'package.json')))
-  // Update dependencies
-  util._extend(currentPackageJson.dependencies, theirPackageJson.dependencies)
-  util._extend(theirPackageJson.dependencies, currentPackageJson.dependencies)
-  fs.writeFileSync(path.join(appDir, 'package.json'), JSON.stringify(theirPackageJson, null, 2))
-
-  var staticDir = path.join(__dirname, 'static', 'secure')
-  fs.copySync(staticDir, appDir, { clobber: options.force })
-  moveServerConfigFiles(appDir, options.server || 'DEFAULT')
-
-  async.series([ function (next) {
+var secure = function (appDir, options, done) {
+  async.waterfall([ function (next) {
+    fs.readFile(path.join(appDir, 'package.json'), next)
+  }, function (theirPackageJson, next) {
+    try { theirPackageJson = JSON.parse(theirPackageJson) } catch (e) { return next(e) }
+    // Update dependencies
+    util._extend(currentPackageJson.dependencies, theirPackageJson.dependencies)
+    util._extend(theirPackageJson.dependencies, currentPackageJson.dependencies)
+    next(null, theirPackageJson)
+  }, function (theirPackageJson, next) {
+    fs.writeFile(path.join(appDir, 'package.json'), JSON.stringify(theirPackageJson, null, 2), next)
+  }, function (next) {
+    var staticDir = path.join(__dirname, 'static', 'secure')
+    fs.copy(staticDir, appDir, { clobber: options.force }, next)
+  }, function (next) {
+    moveServerConfigFiles(appDir, options, next)
+  }, function (next) {
     exec('npm', [ 'install' ], next)
   }, function (next) {
     if (options.nogensrc) return next()
     exec('npm', [ 'run', 'gen-src' ], next)
-  } ], function (err) {
-    if (err) console.log(err)
-    process.exit(err ? 1 : 0)
-  })
+  } ], done)
 }
 
-var organize = function (appDir, options) {
+var organize = function (appDir, options, done) {
   var stat = path.join(__dirname, 'static', 'multitenant')
-  fs.copySync(stat, appDir, { clobber: options.force })
-  moveServerConfigFiles(appDir, options.server || 'DEFAULT')
+  async.series([ function (next) {
+    fs.copy(stat, appDir, { clobber: options.force }, next)
+  }, function (next) {
+    moveServerConfigFiles(appDir, options, next)
+  } ], done)
 }
 
 argv.command('secure [path]')
@@ -86,9 +99,11 @@ argv.command('secure [path]')
       process.chdir(appDir)
     }
     appDir = appDir || dir
-    secure(appDir, options)
-
-    process.chdir(dir)
+    secure(appDir, options, function (err) {
+      if (err) console.log(err)
+      process.chdir(dir)
+      process.exit(err ? 1 : 0)
+    })
   })
 argv.command('organize [path]')
   .description('adds/updates multitenancy support to your app at [path]')
@@ -101,10 +116,13 @@ argv.command('organize [path]')
       process.chdir(appDir)
     }
     appDir = appDir || dir
-    organize(appDir, options)
-
-    process.chdir(dir)
+    organize(appDir, options, function (err) {
+      if (err) console.log(err)
+      process.chdir(dir)
+      process.exit(err ? 1 : 0)
+    })
   })
+
 var seed = function (seedFile, seedType, mongo, schema) {
   require('../lib/loader').load(JSON.parse(fs.readFileSync(seedFile).toString('utf-8')), seedType, mongo, schema, function (err) {
     if (err) console.log(err.stack)
@@ -136,17 +154,17 @@ argv.command('help [subCommand]')
   })
 argv.parse(process.argv)
 
-function exec (cmd, args, cb) {
+function exec (cmd, args, done) {
   var proc = cp.spawn(cmd, args || [], {
     stdio: 'inherit'
   })
-  if (cb) {
-    var fn = function (err) {
+  if (done) {
+    var end = function (err) {
       proc.removeAllListeners()
-      cb(err)
+      done(err)
     }
-    proc.on('close', fn)
-    proc.on('error', fn)
-    proc.on('exit', fn)
+    proc.on('close', end)
+    proc.on('error', end)
+    proc.on('exit', end)
   }
 }
