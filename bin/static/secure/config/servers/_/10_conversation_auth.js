@@ -1,5 +1,5 @@
 var logger = require('yaktor/logger')
-logger.silly(__filename)
+logger.info(__filename)
 var path = require('path')
 var async = require('async')
 var security = require(path.resolve('conversations', 'security'))

@@ -94,7 +94,8 @@ argv.command('secure [path]')
   .option('-n, --nogensrc', 'do not generate sources')
   .option('-f, --force', 'resistance is futile')
   .action(function (appDir, options) {
-    console.log('securing %s', appDir || './')
+    options.server = options.server || 'DEFAULT'
+    console.log('%ssecuring server %s at %s', options.force ? 'forcefully ' : '', options.server, appDir || './')
     if (appDir) {
       appDir = path.resolve(appDir)
       process.chdir(appDir)
@@ -111,7 +112,8 @@ argv.command('organize [path]')
   .option('-s, --server <server>', 'server name; default is DEFAULT', 'DEFAULT')
   .option('-f, --force', 'resistance is futile')
   .action(function (appDir, options) {
-    console.log('organizing %s', appDir || './')
+    options.server = options.server || 'DEFAULT'
+    console.log('%sorganizing server %s at %s', options.force ? 'forcefully ' : '', options.server, appDir || './')
     if (appDir) {
       appDir = path.resolve(appDir)
       process.chdir(appDir)

@@ -1,5 +1,5 @@
 var logger = require('yaktor/logger')
-logger.silly(__filename)
+logger.info(__filename)
 var async = require('async')
 var oauth2orize = require('oauth2orize')
 var passport = require('passport')

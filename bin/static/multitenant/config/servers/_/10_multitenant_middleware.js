@@ -1,6 +1,7 @@
+var logger = require('yaktor/logger')
+logger.info(__filename)
 var path = require('path')
 var fs = require('fs')
-var logger = require(path.resolve('node_modules/yaktor/logger'))
 var contextService = require('request-context')
 var passport = require('passport')
 var Organization = require('mongoose').model('Organization')
@@ -11,8 +12,6 @@ Response.Failure = function (err) {
   this.error = new Error(err.stack + '\nRethrown:').stack
   this.message = err.message
 }
-
-logger.silly(__filename)
 
 module.exports = function (serverName, app, done) {
   var express = require('express')

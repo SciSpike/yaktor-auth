@@ -1,5 +1,7 @@
-var jade = require('jade')
+var logger = require('yaktor/logger')
+logger.info(__filename)
 var path = require('path')
+var jade = require('jade')
 var emailTemplatePath = path.join(__dirname, '..', '..', '..', 'lib', 'templates', 'passwordResetEmail.jade')
 var str = require('fs').readFileSync(emailTemplatePath, 'utf8')
 jade = jade.compile(str, {
