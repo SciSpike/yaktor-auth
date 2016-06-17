@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-/************************/
 /* BEGIN AUTH SEED DATA */
-/************************/
 var accessClients = [ {
   _id: '1',
   name: 'test'
@@ -85,12 +83,10 @@ var users = [ {
     'zipCode': '22222'
   }
 } ]
-/**********************/
 /* END AUTH SEED DATA */
-/**********************/
 
 function rxify (str) {
-  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\^\$\|\\]/g, '\\$&');
+  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\^\$\|\\]/g, '\\$&')
 }
 
 process.on('uncaughtException', function (err) {

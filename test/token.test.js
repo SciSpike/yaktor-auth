@@ -152,18 +152,18 @@ describe(
     it('should give 403 when forbidden', function (done) {
       var session = new Session(app)
       async.waterfall([
-          bind(session.post('/auth/token').send({
-            client_id: '0',
-            grant_type: 'password',
-            username: userId,
-            password: userId
-          }).set('content-type', 'application/x-www-form-urlencoded')
-            .set('Accept', 'application/json').expect(200), 'end'),
-          function (res, cb) {
-            assert.ok(res.body.access_token)
-            cb(null, res.body)
-          }
-        ],
+        bind(session.post('/auth/token').send({
+          client_id: '0',
+          grant_type: 'password',
+          username: userId,
+          password: userId
+        }).set('content-type', 'application/x-www-form-urlencoded')
+          .set('Accept', 'application/json').expect(200), 'end'),
+        function (res, cb) {
+          assert.ok(res.body.access_token)
+          cb(null, res.body)
+        }
+      ],
         function (err, token) {
           assert.ifError(err)
           session.get('/auth/orized').set('authorization',
@@ -184,18 +184,18 @@ describe(
       })
       var session = new Session(app)
       async.waterfall([
-          bind(session.post('/auth/token').send({
-            client_id: '0',
-            grant_type: 'password',
-            username: userId2,
-            password: userId2
-          }).set('content-type', 'application/x-www-form-urlencoded')
-            .set('Accept', 'application/json').expect(200), 'end'),
-          function (res, cb) {
-            assert.ok(res.body.access_token)
-            cb(null, res.body)
-          }
-        ],
+        bind(session.post('/auth/token').send({
+          client_id: '0',
+          grant_type: 'password',
+          username: userId2,
+          password: userId2
+        }).set('content-type', 'application/x-www-form-urlencoded')
+          .set('Accept', 'application/json').expect(200), 'end'),
+        function (res, cb) {
+          assert.ok(res.body.access_token)
+          cb(null, res.body)
+        }
+      ],
         function (err, token) {
           assert.ifError(err)
           session.get('/auth/orized').set('authorization',

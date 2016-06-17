@@ -44,10 +44,11 @@ var moveServerConfigFiles = function (appDir, options, done) {
     async.each(files, function (file, next) {
       var filepath = path.join(src, file)
       var stats = fs.lstatSync(filepath)
-      if (stats.isDirectory() || stats.isFile())
+      if (stats.isDirectory() || stats.isFile()) {
         fs.copy(filepath, path.join(dst, file), { clobber: options.force }, next)
-      else
+      } else {
         next()
+      }
     }, next)
   }, function (next) {
     fs.remove(src, next)

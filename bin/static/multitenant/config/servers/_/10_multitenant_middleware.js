@@ -39,9 +39,7 @@ module.exports = function (serverName, app, done) {
     }
   })
 
-  // ////////////////////////////////////
-  // FROM HERE ALL ROUTES ARE SECURED //
-  // ////////////////////////////////////
+  // FROM HERE ALL ROUTES ARE SECURED
   var actions = require(path.resolve(app.getConfigVal('path.actionsPath')))
   var regexes = Object.keys(actions).map(function (p) {
     return new RegExp(p)
