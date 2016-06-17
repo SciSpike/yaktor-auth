@@ -1,6 +1,6 @@
 var path = require('path')
 var fs = require('fs')
-var logger = require(path.resolve('node_modules/conversation/lib/logger'))
+var logger = require(path.resolve('node_modules/yaktor/logger'))
 var contextService = require('request-context')
 var passport = require('passport')
 var Organization = require('mongoose').model('Organization')
@@ -26,7 +26,7 @@ module.exports = function () {
 
   tenant.use(function (req, res, next) {
     if (req.param('tenant')) {
-      Organization.findOne({name: req.param('tenant')}, function (err, tenant) {
+      Organization.findOne({ name: req.param('tenant') }, function (err, tenant) {
         if (err) return next(err)
         if (tenant) {
           contextService.set('request:tenant', tenant)
