@@ -157,7 +157,7 @@ async.eachSeries([ '02_mongo', '03_schema' ], function (it, next) {
   }
 
   seed(function (err) {
-    console.log(err)
+    if (err) console.log(err)
     process.exit(err ? 1 : 0)
   })
 })
