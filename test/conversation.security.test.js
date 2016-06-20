@@ -13,15 +13,31 @@ var path = require('path')
 var assert = require('assert')
 var async = require('async')
 var connector = require('./mockgoose-connector')(function () { require('mongoose-shortid') })
-
-var yaktor = {}
-var app = {
-  yaktor: yaktor
-}
-var serverName = 'test'
 var bind = function (object, method) {
   return object[ method ].bind(object)
 }
+
+var yctx = {}
+var yaktor = {
+  get: function (name) {
+    return yctx[ name ]
+  },
+  set: function (name, val) {
+    yctx[ name ] = val
+  }
+}
+var serverName = 'test'
+var sctx = {}
+var ctx = {
+  name: serverName,
+  get: function (name) {
+    return sctx[ name ]
+  },
+  set: function (name, val) {
+    sctx[ name ] = val
+  }
+}
+ctx.set('yaktor', yaktor)
 
 var userInfo = {
   _id: '1234@email.com',
@@ -34,7 +50,7 @@ describe('c.security', function () {
     connector.connect(true, function (err, mm) {
       if (err) done(err)
       require(path.resolve('src-gen', 'modelAll'))
-      require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_conversation_auth'))(serverName, app, function (err) {
+      require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_conversation_auth'))(ctx, function (err) {
         if (err) return done(err)
 
         var mongoose = mm.mongoose
@@ -72,28 +88,28 @@ describe('c.security', function () {
 
   describe('agent', function () {
     it('should be not allowed by mygroups', function (done) {
-      yaktor.agentAuthorize(userInfo, 'test.best', function (err, allowed) {
+      yaktor.get('agentAuthorize')(userInfo, 'test.best', function (err, allowed) {
         assert.ifError(err)
         assert.equal(allowed, false)
         done()
       })
     })
     it('should be allow by authentication alone', function (done) {
-      yaktor.agentAuthorize(userInfo, 'lest.test', function (err, allowed) {
+      yaktor.get('agentAuthorize')(userInfo, 'lest.test', function (err, allowed) {
         assert.ifError(err)
         assert.equal(allowed, true)
         done()
       })
     })
     it('should be allowed by mygroups', function (done) {
-      yaktor.agentAuthorize(userInfo, 'test.test', function (err, allowed) {
+      yaktor.get('agentAuthorize')(userInfo, 'test.test', function (err, allowed) {
         assert.ifError(err)
         assert.equal(allowed, true)
         done()
       })
     })
     it('should be default to anon and allow without user', function (done) {
-      yaktor.agentAuthorize(null, 'best.test', function (err, allowed) {
+      yaktor.get('agentAuthorize')(null, 'best.test', function (err, allowed) {
         assert.ifError(err)
         assert.equal(allowed, true)
         done()

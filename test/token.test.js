@@ -2,7 +2,6 @@
 /* eslint-disable indent */
 var path = require('path')
 var serverName = 'test'
-var configPrefix = 'yaktor.servers.' + serverName + '.'
 var serverCfg = {
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
   path: {
@@ -32,14 +31,35 @@ var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
 var config = require('config')
-app.yaktor = {}
-app.getConfigVal = function (val) {
-  return config.get(configPrefix + val)
+var yctx = {}
+var yaktor = {
+  get: function (name) {
+    return yctx[ name ]
+  },
+  set: function (name, val) {
+    yctx[ name ] = val
+  }
 }
-app.hasConfigVal = function (val) {
-  return config.has(configPrefix + val)
+var prefix = [ 'yaktor', 'servers', serverName ]
+var sctx = {}
+var ctx = {
+  name: serverName,
+  get: function (name) {
+    return sctx[ name ]
+  },
+  set: function (name, val) {
+    sctx[ name ] = val
+  },
+  hascfg: function (name) {
+    return config.has(prefix.concat(name).join('.'))
+  },
+  getcfg: function (name) {
+    return config.get(prefix.concat(name).join('.'))
+  }
 }
-app.set('actionsPath', path.resolve('actions'))
+ctx.set('yaktor', yaktor)
+ctx.set('app', app)
+
 app.set('views', path.join(__dirname, '/../bin/static'))
 app.use(bodyParser.urlencoded({
   extended: true
@@ -87,10 +107,10 @@ describe(
         AccessToken = mongoose.model('AccessToken')
         Role = mongoose.model('Role')
         async.series([
-          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), serverName, app),
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), ctx),
           async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_auth_routes'), {
             path: fakePath
-          }), serverName, app) ], function (err) {
+          }), ctx) ], function (err) {
           if (err) return done(err)
         })
         async.parallel([
@@ -152,18 +172,18 @@ describe(
     it('should give 403 when forbidden', function (done) {
       var session = new Session(app)
       async.waterfall([
-        bind(session.post('/auth/token').send({
-          client_id: '0',
-          grant_type: 'password',
-          username: userId,
-          password: userId
-        }).set('content-type', 'application/x-www-form-urlencoded')
-          .set('Accept', 'application/json').expect(200), 'end'),
-        function (res, cb) {
-          assert.ok(res.body.access_token)
-          cb(null, res.body)
-        }
-      ],
+          bind(session.post('/auth/token').send({
+            client_id: '0',
+            grant_type: 'password',
+            username: userId,
+            password: userId
+          }).set('content-type', 'application/x-www-form-urlencoded')
+            .set('Accept', 'application/json').expect(200), 'end'),
+          function (res, cb) {
+            assert.ok(res.body.access_token)
+            cb(null, res.body)
+          }
+        ],
         function (err, token) {
           assert.ifError(err)
           session.get('/auth/orized').set('authorization',
@@ -184,18 +204,18 @@ describe(
       })
       var session = new Session(app)
       async.waterfall([
-        bind(session.post('/auth/token').send({
-          client_id: '0',
-          grant_type: 'password',
-          username: userId2,
-          password: userId2
-        }).set('content-type', 'application/x-www-form-urlencoded')
-          .set('Accept', 'application/json').expect(200), 'end'),
-        function (res, cb) {
-          assert.ok(res.body.access_token)
-          cb(null, res.body)
-        }
-      ],
+          bind(session.post('/auth/token').send({
+            client_id: '0',
+            grant_type: 'password',
+            username: userId2,
+            password: userId2
+          }).set('content-type', 'application/x-www-form-urlencoded')
+            .set('Accept', 'application/json').expect(200), 'end'),
+          function (res, cb) {
+            assert.ok(res.body.access_token)
+            cb(null, res.body)
+          }
+        ],
         function (err, token) {
           assert.ifError(err)
           session.get('/auth/orized').set('authorization',

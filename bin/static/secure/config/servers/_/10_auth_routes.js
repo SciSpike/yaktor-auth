@@ -8,18 +8,19 @@ var AccessClient = mongoose.model('AccessClient')
 var path = require('path')
 var async = require('async')
 // Endpoints
-module.exports = function (serverName, app, done) {
-  var yaktor = app.yaktor
-  var server = yaktor.oauthServer
-  var passwordResetService = app.passwordResetService
+module.exports = function (ctx, done) {
+  var app = ctx.get('app')
+  var yaktor = ctx.get('yaktor')
+  var server = yaktor.get('oauthServer')
+  var passwordResetService = ctx.get('passwordResetService')
 
-  var loginUrl = app.getConfigVal('auth.url.login')
-  var logoutUrl = app.getConfigVal('auth.url.logout')
-  var authorizeUrl = app.getConfigVal('auth.url.authorize')
-  var tokenUrl = app.getConfigVal('auth.url.token')
-  var registerUrl = app.getConfigVal('auth.url.register')
-  var resetUrl = app.getConfigVal('auth.url.reset')
-  var requestResetUrl = app.getConfigVal('auth.url.resetRequest')
+  var loginUrl = ctx.getcfg('auth.url.login')
+  var logoutUrl = ctx.getcfg('auth.url.logout')
+  var authorizeUrl = ctx.getcfg('auth.url.authorize')
+  var tokenUrl = ctx.getcfg('auth.url.token')
+  var registerUrl = ctx.getcfg('auth.url.register')
+  var resetUrl = ctx.getcfg('auth.url.reset')
+  var requestResetUrl = ctx.getcfg('auth.url.resetRequest')
 
   var redirectWrapper = function (req, res, next) {
     var rr = res.redirect
@@ -108,7 +109,7 @@ module.exports = function (serverName, app, done) {
       },
       function (info, next) {
         passwordResetService.sendPasswordResetEmail(req.body.email, {
-          urlPrefix: app.get('urlPrefix'),
+          urlPrefix: ctx.get('urlPrefix'),
           verifyUrl: resetUrl,
           codeName: 'code',
           code: info.code
@@ -176,7 +177,7 @@ module.exports = function (serverName, app, done) {
       return res.redirect(registerUrl)
     }
     passwordResetService.processRegistration(email, function (err,
-      user) {
+                                                              user) {
       if (err) {
         req.flash('error', err.message)
         req.flash('email', email)
@@ -253,10 +254,10 @@ module.exports = function (serverName, app, done) {
     server.errorHandler())
 
   // ////////////////////////////////////
-    // FROM HERE ALL ROUTES ARE SECURED //
-    // ////////////////////////////////////
+  // FROM HERE ALL ROUTES ARE SECURED //
+  // ////////////////////////////////////
 
-  var actions = require(path.resolve(app.getConfigVal('path.actionsPath')))
+  var actions = require(path.resolve(ctx.getcfg('path.actionsPath')))
   var regexes = Object.keys(actions).map(function (p) {
     var rx = new RegExp(p)
     rx.accessRequirements = actions[ p ]

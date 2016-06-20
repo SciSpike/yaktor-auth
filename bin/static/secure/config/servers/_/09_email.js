@@ -2,12 +2,12 @@ var logger = require('yaktor/logger')
 logger.info(__filename)
 var nodemailer = require('nodemailer')
 
-module.exports = function (serverName, app, done) {
-  var transport = app.getConfigVal('auth.mail.transport')
-  var service = app.getConfigVal('auth.mail.service')
-  var user = app.getConfigVal('auth.mail.user')
-  var pass = app.getConfigVal('auth.mail.pass')
-  var from = app.getConfigVal('auth.mail.from')
+module.exports = function (ctx, done) {
+  var transport = ctx.getcfg('auth.mail.transport')
+  var service = ctx.getcfg('auth.mail.service')
+  var user = ctx.getcfg('auth.mail.user')
+  var pass = ctx.getcfg('auth.mail.pass')
+  var from = ctx.getcfg('auth.mail.from')
 
   var transporter = nodemailer.createTransport(transport, {
     service: service,
@@ -17,14 +17,14 @@ module.exports = function (serverName, app, done) {
     }
   })
 
-  app.authMailer = {
+  ctx.set('authMailer', {
     sendMail: function () {
       transporter.sendMail.apply(transporter, arguments)
     },
     get defaultFrom () {
       return from
     }
-  }
+  })
 
   done && done()
 }

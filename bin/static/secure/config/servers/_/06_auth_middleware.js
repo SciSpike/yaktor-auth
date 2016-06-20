@@ -405,12 +405,14 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
 }))
 
 // Endpoints
-module.exports = function (serverName, app, done) {
-  var yaktor = app.yaktor
-  yaktor.issueToken = issueToken
-  yaktor.getCode = getCode
-  yaktor.oauthServer = server
-  yaktor.tokenAuthenticate = tokenAuthenticate
+module.exports = function (ctx, done) {
+  var app = ctx.get('app')
+  var yaktor = ctx.get('yaktor')
+  // TODO: should these be set on ctx instead of on yaktor?  Or set at all?
+  yaktor.set('issueToken', issueToken)
+  yaktor.set('getCode', getCode)
+  yaktor.set('oauthServer', server)
+  yaktor.set('tokenAuthenticate', tokenAuthenticate)
   // MUST use passport before any routes otherwise it won't be there
   app.use(passport.initialize())
   app.use(passport.authenticate([ 'bearer' ], {

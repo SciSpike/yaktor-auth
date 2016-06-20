@@ -1,7 +1,6 @@
 /* global describe, it, before  */
 var path = require('path')
 var serverName = 'test'
-var configPrefix = 'yaktor.servers.' + serverName + '.'
 var serverCfg = {
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
   path: {
@@ -30,15 +29,36 @@ var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
 var config = require('config')
-app.yaktor = {}
-app.getConfigVal = function (val) {
-  return config.get(configPrefix + val)
-}
-app.hasConfigVal = function (val) {
-  return config.has(configPrefix + val)
-}
 
-app.set('actionsPath', path.resolve('actions'))
+var yctx = {}
+var yaktor = {
+  get: function (name) {
+    return yctx[ name ]
+  },
+  set: function (name, val) {
+    yctx[ name ] = val
+  }
+}
+var prefix = [ 'yaktor', 'servers', serverName ]
+var sctx = {}
+var ctx = {
+  name: serverName,
+  get: function (name) {
+    return sctx[ name ]
+  },
+  set: function (name, val) {
+    sctx[ name ] = val
+  },
+  hascfg: function (name) {
+    return config.has(prefix.concat(name).join('.'))
+  },
+  getcfg: function (name) {
+    return config.get(prefix.concat(name).join('.'))
+  }
+}
+ctx.set('yaktor', yaktor)
+ctx.set('app', app)
+
 app.set('views', path.join(__dirname, '/../bin/static/secure'))
 app.use(bodyParser.urlencoded({
   extended: true
@@ -86,7 +106,7 @@ describe(
         async.eachSeries([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ],
           function (mod, next) {
             var init = proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', mod), { path: fakePath })
-            init(serverName, app, next)
+            init(ctx, next)
           },
           function (err) {
             if (err) return done(err)

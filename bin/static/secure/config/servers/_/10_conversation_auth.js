@@ -83,8 +83,10 @@ var yaktorSecurity = {
   }
 
 }
-module.exports = function (serverName, app, done) {
-  app.yaktor.authorize = yaktorSecurity.authorize
-  app.yaktor.agentAuthorize = yaktorSecurity.agentAuthorize
+module.exports = function (ctx, done) {
+  var yaktor = ctx.get('yaktor')
+  // TODO: should these be set on ctx instead of on yaktor?
+  yaktor.set('authorize', yaktorSecurity.authorize)
+  yaktor.set('agentAuthorize', yaktorSecurity.agentAuthorize)
   done && done()
 }
