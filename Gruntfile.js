@@ -56,14 +56,14 @@ module.exports = function (grunt) {
       },
       'release-patch': {
         'command': [
-          "[[ $(git status | head -n 1 | awk '{ print $3 }') =~ ^v[0-9]+\.[0-9]+\.x$ ]]", // patches only from vM.m.x branches
+          "[[ $(git status | head -n 1 | awk '{ print $3 }') =~ ^v[0-9]+\\.[0-9]+\\.x$ ]]", // patches only from vM.m.x branches
           '[ -z "$(git status -s)" ]', // no untracked files
           'git diff --cached --exit-code --no-patch', // no modified files
           'grunt bump:patch',
           'grunt shell:publish',
           'grunt bump:prepatch --no-tag'
         ].join('&&'),
-        help: 'Release a patch. You must do this in a clean working directory from a release branch, like \'v0.1.x\'.'
+        help: "Release a patch. You must do this in a clean working directory from a release branch, like 'v0.1.x'."
       },
       'release-pre': {
         'command': [

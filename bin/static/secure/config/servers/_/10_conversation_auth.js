@@ -1,3 +1,5 @@
+var logger = require('yaktor/logger')
+logger.info(__filename)
 var path = require('path')
 var async = require('async')
 var security = require(path.resolve('conversations', 'security'))
@@ -5,18 +7,17 @@ var DEFAULT_ACCESS_REQUIREMENT = 'ANONYMOUS'
 var mongoose = require('mongoose')
 var Role = mongoose.model('Role')
 
-console.log(new Date(), __filename)
 var yaktorSecurity = {
   accessPathResolution: function (req) {
     return req.agentQName
   },
   accessRequirementResolution: function (req, cb) {
     var ar = DEFAULT_ACCESS_REQUIREMENT
-    var a = security[req.agentQName]
+    var a = security[ req.agentQName ]
     if (a && a.accessRequirement && a.accessRequirement.toUpperCase() !== 'DEFAULT') {
       ar = a.accessRequirement.toUpperCase()
     }
-    cb(null, yaktorSecurity.accessResolution[ar])
+    cb(null, yaktorSecurity.accessResolution[ ar ])
   },
   accessResolution: {
     ANONYMOUS: function (req, cb) {
@@ -82,7 +83,8 @@ var yaktorSecurity = {
   }
 
 }
-module.exports = function () {
-  this.yaktor.authorize = yaktorSecurity.authorize
-  this.yaktor.agentAuthorize = yaktorSecurity.agentAuthorize
+module.exports = function (serverName, app, done) {
+  app.yaktor.authorize = yaktorSecurity.authorize
+  app.yaktor.agentAuthorize = yaktorSecurity.agentAuthorize
+  done && done()
 }

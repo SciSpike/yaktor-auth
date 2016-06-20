@@ -1,23 +1,25 @@
+var logger = require('yaktor/logger')
+logger.info(__filename)
 var login = require('connect-ensure-login')
 var passport = require('passport')
 var mongoose = require('mongoose')
 var AccessClient = mongoose.model('AccessClient')
-var LOGIN_URL = '/auth/login'
-var LOGOUT_URL = '/auth/logout'
-var AUTHORIZE_URL = '/auth/authorize'
-var TOKEN_URL = '/auth/token'
-var REGISTER_URL = '/auth/register'
-var PASSWORD_RESET_URL = '/auth/reset'
-var REQUEST_PASSWORD_RESET_URL = '/auth/reset/request'
+
 var path = require('path')
 var async = require('async')
-var passwordResetService = require('../../lib/passwordResetService')
-console.log(new Date(), __filename)
-// ///Endpoints
-module.exports = function (done) {
-  var app = this
-  var yaktor = this.yaktor
+// Endpoints
+module.exports = function (serverName, app, done) {
+  var yaktor = app.yaktor
   var server = yaktor.oauthServer
+  var passwordResetService = app.passwordResetService
+
+  var loginUrl = app.getConfigVal('auth.url.login')
+  var logoutUrl = app.getConfigVal('auth.url.logout')
+  var authorizeUrl = app.getConfigVal('auth.url.authorize')
+  var tokenUrl = app.getConfigVal('auth.url.token')
+  var registerUrl = app.getConfigVal('auth.url.register')
+  var resetUrl = app.getConfigVal('auth.url.reset')
+  var requestResetUrl = app.getConfigVal('auth.url.resetRequest')
 
   var redirectWrapper = function (req, res, next) {
     var rr = res.redirect
@@ -38,10 +40,10 @@ module.exports = function (done) {
    * ?response_type=code&client_id=abcdefg1234567890&redirect_uri=http://localhost:3000/
    * ?response_type=token&client_id=1&redirect_uri=http://localhost:3000/
    */
-  app.get(AUTHORIZE_URL,
+  app.get(authorizeUrl,
     passport.authenticate('session'),
     redirectWrapper,
-    login.ensureLoggedIn(LOGIN_URL),
+    login.ensureLoggedIn(loginUrl),
     server.authorization(function (clientId, redirectUri, done) {
       AccessClient.findById(clientId, function (err, client) {
         if (err) {
@@ -64,10 +66,10 @@ module.exports = function (done) {
   /*
    * post target of AuthorizationCode request
    */
-  app.post(AUTHORIZE_URL,
+  app.post(authorizeUrl,
     passport.authenticate('session'),
     redirectWrapper,
-    login.ensureLoggedIn(LOGIN_URL),
+    login.ensureLoggedIn(loginUrl),
     server.decision(function (req, done) {
       var user = req.user
       // we only needed you to login for a moment, so remove it.
@@ -82,9 +84,9 @@ module.exports = function (done) {
   /*
    * Nothing special just login
    */
-  app.get(LOGIN_URL, function (req, res) {
+  app.get(loginUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'login.ejs')), {
-      action: LOGIN_URL,
+      action: loginUrl,
       message: req.flash('error') || req.flash('message')
     })
   })
@@ -92,9 +94,9 @@ module.exports = function (done) {
   /*
    * Request password reset form.
    */
-  app.get(REQUEST_PASSWORD_RESET_URL, function (req, res) {
+  app.get(requestResetUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'requestReset.ejs')), {
-      action: REQUEST_PASSWORD_RESET_URL,
+      action: requestResetUrl,
       message: req.flash('error') || req.flash('message')
     })
   })
@@ -107,7 +109,7 @@ module.exports = function (done) {
       function (info, next) {
         passwordResetService.sendPasswordResetEmail(req.body.email, {
           urlPrefix: app.get('urlPrefix'),
-          verifyUrl: PASSWORD_RESET_URL,
+          verifyUrl: resetUrl,
           codeName: 'code',
           code: info.code
         }, next)
@@ -117,23 +119,23 @@ module.exports = function (done) {
       // everything's happy
       if (err && !err.noUserFound) {
         req.flash('error', err.message)
-        return res.redirect(REQUEST_PASSWORD_RESET_URL)
+        return res.redirect(requestResetUrl)
       }
-      res.redirect(PASSWORD_RESET_URL)
+      res.redirect(resetUrl)
     })
   }
 
   /*
    * Send password reset email.
    */
-  app.post(REQUEST_PASSWORD_RESET_URL, handleRequestPasswordReset)
+  app.post(requestResetUrl, handleRequestPasswordReset)
 
   /*
    * Reset password form.
    */
-  app.get(PASSWORD_RESET_URL, function (req, res) {
+  app.get(resetUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'reset.ejs')), {
-      action: PASSWORD_RESET_URL,
+      action: resetUrl,
       code: req.param('code'),
       message: req.flash('error')
     })
@@ -141,29 +143,29 @@ module.exports = function (done) {
   /*
    * Reset password.
    */
-  app.post(PASSWORD_RESET_URL, function (req, res) {
+  app.post(resetUrl, function (req, res) {
     passwordResetService.resetUserPasswordViaCode(req.body.code, req.body.password, req.body.password2,
       function (err, email) {
         if (err) {
           req.flash('error', err.message)
-          return res.redirect(encodeURI(PASSWORD_RESET_URL + '?code=' + req.body.code))
+          return res.redirect(encodeURI(resetUrl + '?code=' + req.body.code))
         }
         req.flash('message', 'Password successfully reset.')
-        res.redirect(LOGIN_URL)
+        res.redirect(loginUrl)
       })
   })
 
   /*
    * Register new user.
    */
-  app.get(REGISTER_URL, function (req, res) {
+  app.get(registerUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'register.ejs')), {
-      action: REGISTER_URL,
+      action: registerUrl,
       email: req.flash('email') || req.param('email'),
       message: req.flash('error') || req.flash('message')
     })
   })
-  app.post(REGISTER_URL, function (req, res) {
+  app.post(registerUrl, function (req, res) {
     var msg = ''
     var email = (req.body.email || '').trim()
     if (!email) {
@@ -171,14 +173,14 @@ module.exports = function (done) {
     }
     if (msg) { // then form error
       req.flash('error', msg)
-      return res.redirect(REGISTER_URL)
+      return res.redirect(registerUrl)
     }
     passwordResetService.processRegistration(email, function (err,
       user) {
       if (err) {
         req.flash('error', err.message)
         req.flash('email', email)
-        return res.redirect(REGISTER_URL)
+        return res.redirect(registerUrl)
       }
       handleRequestPasswordReset(req, res)
     })
@@ -187,18 +189,18 @@ module.exports = function (done) {
   /*
    * Authenticate like curl -u
    */
-  app.post(LOGIN_URL,
+  app.post(loginUrl,
     redirectWrapper,
     passport.authenticate('local', {
       failureFlash: true,
       successReturnToOrRedirect: '/',
-      failureRedirect: LOGIN_URL
+      failureRedirect: loginUrl
     }))
 
   /*
    * post target of login
    */
-  app.get(LOGOUT_URL, function (req, res) {
+  app.get(logoutUrl, function (req, res) {
     req.logout()
     res.redirect('/')
   })
@@ -243,7 +245,7 @@ module.exports = function (done) {
    * 'grant_type=refresh_token&refresh_token=qaYrkszQx9KANsS8mzSBxeenxeU7AxU6DnGWKQAFDwCcAYLDCtXybA0Ngl9JrnfI6WOCK27mGj8ep2ctgkUi4g'
    * -v -H "content-type=application/x-www-form-urlencoded"
    */
-  app.post(TOKEN_URL,
+  app.post(tokenUrl,
     passport.authenticate([ 'client-basic', 'oauth2-client-password', 'oauth2-public-client' ], {
       session: false
     }),
@@ -251,12 +253,13 @@ module.exports = function (done) {
     server.errorHandler())
 
   // ////////////////////////////////////
-  // FROM HERE ALL ROUTES ARE SECURED //
-  // ////////////////////////////////////
-  var actions = require(app.get('actionsPath'))
+    // FROM HERE ALL ROUTES ARE SECURED //
+    // ////////////////////////////////////
+
+  var actions = require(path.resolve(app.getConfigVal('path.actionsPath')))
   var regexes = Object.keys(actions).map(function (p) {
     var rx = new RegExp(p)
-    rx.accessRequirements = actions[p]
+    rx.accessRequirements = actions[ p ]
     return rx
   })
   app.use(passport.authorize('yaktor-authorize', {

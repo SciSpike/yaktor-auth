@@ -4,9 +4,9 @@
   var Organization = require('mongoose').model('Organization')
   var Role = require('mongoose').model('Role')
   var UserInfo = require('mongoose').model('UserInfo')
-  var conversation = require('conversation')
-  var converter = conversation.converter
-  var Response = conversation.services.rest.Response
+  var yaktor = require('yaktor')
+  var converter = yaktor.converter
+  var Response = yaktor.services.rest.Response
   var async = require('async')
   /*
    * create

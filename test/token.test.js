@@ -1,17 +1,44 @@
 /* globals describe, it, before  */
 /* eslint-disable indent */
+var path = require('path')
+var serverName = 'test'
+var configPrefix = 'yaktor.servers.' + serverName + '.'
+var serverCfg = {
+  auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
+  path: {
+    actionsPath: 'actions'
+  }
+}
+var cfg = {
+  yaktor: {
+    log: {
+      stdout: true,
+      level: 'info',
+      filename: ''
+    },
+    servers: {}
+  }
+}
+cfg.yaktor.servers[ serverName ] = serverCfg
+process.env.NODE_CONFIG = JSON.stringify(cfg)
 
 var Session = require('supertest-session')
 var assert = require('assert')
 var express = require('express')
 var session = require('express-session')
-var path = require('path')
 var async = require('async')
 var flash = require('connect-flash')
 var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
+var config = require('config')
 app.yaktor = {}
+app.getConfigVal = function (val) {
+  return config.get(configPrefix + val)
+}
+app.hasConfigVal = function (val) {
+  return config.has(configPrefix + val)
+}
 app.set('actionsPath', path.resolve('actions'))
 app.set('views', path.join(__dirname, '/../bin/static'))
 app.use(bodyParser.urlencoded({
@@ -59,11 +86,12 @@ describe(
         UserInfo = mongoose.model('UserInfo')
         AccessToken = mongoose.model('AccessToken')
         Role = mongoose.model('Role')
-        proxyquire(path.resolve('bin', 'static', 'config', 'initializers', '06_auth_middleware'), {}).call(app)
-        proxyquire(path.resolve('bin', 'static', 'config', 'initializers', '10_auth_routes'), {
-          path: fakePath
-        }).bind(app)(function (err) {
-          if (err) done(err)
+        async.series([
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), serverName, app),
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_auth_routes'), {
+            path: fakePath
+          }), serverName, app) ], function (err) {
+          if (err) return done(err)
         })
         async.parallel([
           function (next) {
