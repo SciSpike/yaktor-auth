@@ -58,5 +58,5 @@ module.exports = function (ctx, done) {
     })
   }
 
-  done && done()
+  done()
 }

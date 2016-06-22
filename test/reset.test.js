@@ -14,6 +14,7 @@ var cfg = {
       level: 'info',
       filename: ''
     },
+    auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
     servers: {}
   }
 }
@@ -103,10 +104,17 @@ describe(
         var mongoose = mm.mongoose
         UserInfo = mongoose.model('UserInfo')
         PasswordResetInfo = mongoose.model('PasswordResetInfo')
-        async.eachSeries([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ],
-          function (mod, next) {
-            var init = proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', mod), { path: fakePath })
-            init(ctx, next)
+        var initializers = [ {
+          path: path.resolve('bin', 'static', 'secure', 'config', 'global', '06_auth'),
+          ctx: yaktor
+        } ]
+        initializers = initializers.concat([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ].map(function (it) {
+          return { path: path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', it), ctx: ctx }
+        }))
+        async.eachSeries(initializers,
+          function (initializer, next) {
+            var init = proxyquire(initializer.path, { path: fakePath })
+            init(initializer.ctx, next)
           },
           function (err) {
             if (err) return done(err)

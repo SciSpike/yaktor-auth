@@ -88,5 +88,5 @@ module.exports = function (ctx, done) {
   // TODO: should these be set on ctx instead of on yaktor?
   yaktor.set('authorize', yaktorSecurity.authorize)
   yaktor.set('agentAuthorize', yaktorSecurity.agentAuthorize)
-  done && done()
+  done()
 }

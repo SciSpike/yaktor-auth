@@ -15,6 +15,7 @@ var cfg = {
       level: 'info',
       filename: ''
     },
+    auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
     servers: {}
   }
 }
@@ -107,6 +108,7 @@ describe(
         AccessToken = mongoose.model('AccessToken')
         Role = mongoose.model('Role')
         async.series([
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'global', '06_auth'), {}), yaktor),
           async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), ctx),
           async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_auth_routes'), {
             path: fakePath

@@ -67,6 +67,40 @@ var secure = function (appDir, options, done) {
   }, function (theirPackageJson, next) {
     fs.writeFile(path.join(appDir, 'package.json'), JSON.stringify(theirPackageJson, null, 2), next)
   }, function (next) {
+    var authConfig = path.join(appDir, 'config', 'global', 'auth', 'index.js')
+    if (options.force || !fs.existsSync(authConfig)) return next()
+
+    var authConfigBackup
+    var i = 0
+    while (fs.existsSync(authConfigBackup = authConfig + '.bak.' + i)) { i++ }
+
+    console.log('WARNING: replacing %s; backup copy is %s', authConfig, authConfigBackup)
+    async.series([ function (next) {
+      fs.copy(authConfig, authConfigBackup, next)
+    }, function (next) {
+      fs.remove(authConfig, next)
+    } ], function (err) {
+      if (err) console.log('ERROR: replacing global auth config: %s', err.message)
+      next(err)
+    })
+  }, function (next) {
+    var initializer = path.join(appDir, 'config', 'global', '06_auth.js')
+    if (options.force || !fs.existsSync(initializer)) return next()
+
+    var initializerBackup
+    var i = 0
+    while (fs.existsSync(initializerBackup = initializer + '.bak.' + i)) { i++ }
+
+    console.log('WARNING: replacing %s; backup copy is %s', initializer, initializerBackup)
+    async.series([ function (next) {
+      fs.copy(initializer, initializerBackup, next)
+    }, function (next) {
+      fs.remove(initializer, next)
+    } ], function (err) {
+      if (err) console.log('ERROR: replacing global 06_auth.js initializer: %s', err.message)
+      next(err)
+    })
+  }, function (next) {
     var staticDir = path.join(__dirname, 'static', 'secure')
     fs.copy(staticDir, appDir, { clobber: options.force }, next)
   }, function (next) {
@@ -137,35 +171,36 @@ argv.command('token')
     var http = require('http')
     var url = require('url').parse(options.loginUrl)
     var opts = {
-      method: "POST",
+      method: 'POST',
       hostname: url.hostname,
       port: url.port,
       path: url.path,
       headers: {
-        "content-type": "application/json",
-        "cache-control": "no-cache"
+        'content-type': 'application/json',
+        'cache-control': 'no-cache'
       }
-    };
+    }
+    var body = {
+      grant_type: 'password',
+      username: options.user,
+      password: options.pass,
+      client_id: options.clientId
+    }
 
     var req = http.request(opts, function (res) {
       var chunks = []
 
-      res.on("data", function (chunk) {
+      res.on('data', function (chunk) {
         chunks.push(chunk)
-      });
+      })
 
-      res.on("end", function () {
+      res.on('end', function () {
         var body = JSON.parse(Buffer.concat(chunks))
         process.stdout.write(body.access_token + (options.excludeNewline ? '' : require('os').EOL))
-      });
-    });
+      })
+    })
 
-    req.write(JSON.stringify({
-      grant_type: options.password,
-      username: options.user,
-      password: options.pass,
-      client_id: options.clientId
-    }))
+    req.write(JSON.stringify(body, 0, 2))
 
     req.end()
   })

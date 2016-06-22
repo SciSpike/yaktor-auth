@@ -151,5 +151,5 @@ module.exports = function (ctx, done) {
 
   ctx.set('passwordResetService', my)
 
-  done && done()
+  done()
 }
