@@ -16,7 +16,7 @@ Response.Failure = function (err) {
 module.exports = function (ctx, done) {
   var express = require('express')
   var tenant = express.Router({ mergeParams: true })
-  var app = ctx.get('app')
+  var app = ctx.app
   app.use('/organization/:tenant', tenant) // TODO: make configurable?
   app.use('/organizations', contextService.middleware('request')) // TODO: make configurable?
 
@@ -40,7 +40,7 @@ module.exports = function (ctx, done) {
   })
 
   // FROM HERE ALL ROUTES ARE SECURED
-  var actions = require(path.resolve(ctx.getcfg('path.actionsPath')))
+  var actions = require(path.resolve(ctx.path.actionsPath))
   var regexes = Object.keys(actions).map(function (p) {
     return new RegExp(p)
   })
@@ -49,7 +49,7 @@ module.exports = function (ctx, done) {
     regexes: regexes
   }))
 
-  var routes = path.resolve(ctx.getcfg('path.routesPath'))
+  var routes = path.resolve(ctx.path.routesPath)
   if (fs.existsSync(routes)) {
     fs.readdirSync(routes).forEach(function (file) {
       var item = path.join(routes, file)

@@ -4,23 +4,22 @@ var login = require('connect-ensure-login')
 var passport = require('passport')
 var mongoose = require('mongoose')
 var AccessClient = mongoose.model('AccessClient')
-
+var yaktor = require('yaktor')
 var path = require('path')
 var async = require('async')
 // Endpoints
 module.exports = function (ctx, done) {
-  var app = ctx.get('app')
-  var yaktor = ctx.get('yaktor')
-  var server = yaktor.get('oauthServer')
-  var passwordResetService = ctx.get('passwordResetService')
+  var app = ctx.app
+  var server = yaktor.oauthServer
+  var passwordResetService = ctx.passwordResetService
 
-  var loginUrl = ctx.getcfg('auth.url.login')
-  var logoutUrl = ctx.getcfg('auth.url.logout')
-  var authorizeUrl = ctx.getcfg('auth.url.authorize')
-  var tokenUrl = ctx.getcfg('auth.url.token')
-  var registerUrl = ctx.getcfg('auth.url.register')
-  var resetUrl = ctx.getcfg('auth.url.reset')
-  var requestResetUrl = ctx.getcfg('auth.url.resetRequest')
+  var loginUrl = ctx.auth.url.login
+  var logoutUrl = ctx.auth.url.logout
+  var authorizeUrl = ctx.auth.url.authorize
+  var tokenUrl = ctx.auth.url.token
+  var registerUrl = ctx.auth.url.register
+  var resetUrl = ctx.auth.url.reset
+  var requestResetUrl = ctx.auth.url.resetRequest
 
   var redirectWrapper = function (req, res, next) {
     var rr = res.redirect
@@ -109,7 +108,7 @@ module.exports = function (ctx, done) {
       },
       function (info, next) {
         passwordResetService.sendPasswordResetEmail(req.body.email, {
-          urlPrefix: ctx.get('urlPrefix'),
+          urlPrefix: ctx.urlPrefix,
           verifyUrl: resetUrl,
           codeName: 'code',
           code: info.code
@@ -257,7 +256,7 @@ module.exports = function (ctx, done) {
   // FROM HERE ALL ROUTES ARE SECURED //
   // ////////////////////////////////////
 
-  var actions = require(path.resolve(ctx.getcfg('path.actionsPath')))
+  var actions = require(path.resolve(ctx.path.actionsPath))
   var regexes = Object.keys(actions).map(function (p) {
     var rx = new RegExp(p)
     rx.accessRequirements = actions[ p ]

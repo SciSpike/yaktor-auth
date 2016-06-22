@@ -18,7 +18,7 @@ var uuid = require('node-uuid')
 var async = require('async')
 
 module.exports = function (ctx, done) {
-  var mailer = ctx.get('authMailer')
+  var mailer = ctx.authMailer
 
   var my = {
     error: function (msg) {
@@ -149,7 +149,7 @@ module.exports = function (ctx, done) {
     return cond ? cb() : cb(my.error(msg))
   }
 
-  ctx.set('passwordResetService', my)
+  ctx.passwordResetService = my
 
   done()
 }

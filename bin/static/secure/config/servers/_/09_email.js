@@ -3,11 +3,11 @@ logger.info(__filename)
 var nodemailer = require('nodemailer')
 
 module.exports = function (ctx, done) {
-  var transport = ctx.getcfg('auth.mail.transport')
-  var service = ctx.getcfg('auth.mail.service')
-  var user = ctx.getcfg('auth.mail.user')
-  var pass = ctx.getcfg('auth.mail.pass')
-  var from = ctx.getcfg('auth.mail.from')
+  var transport = ctx.auth.mail.transport
+  var service = ctx.auth.mail.service
+  var user = ctx.auth.mail.user
+  var pass = ctx.auth.mail.pass
+  var from = ctx.auth.mail.from
 
   var transporter = nodemailer.createTransport(transport, {
     service: service,
@@ -17,14 +17,14 @@ module.exports = function (ctx, done) {
     }
   })
 
-  ctx.set('authMailer', {
+  ctx.authMailer = {
     sendMail: function () {
       transporter.sendMail.apply(transporter, arguments)
     },
     get defaultFrom () {
       return from
     }
-  })
+  }
 
   done()
 }

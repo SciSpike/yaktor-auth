@@ -6,6 +6,7 @@ var security = require(path.resolve('conversations', 'security'))
 var DEFAULT_ACCESS_REQUIREMENT = 'ANONYMOUS'
 var mongoose = require('mongoose')
 var Role = mongoose.model('Role')
+var yaktor = require('yaktor')
 
 var yaktorSecurity = {
   accessPathResolution: function (req) {
@@ -84,9 +85,8 @@ var yaktorSecurity = {
 
 }
 module.exports = function (ctx, done) {
-  var yaktor = ctx.get('yaktor')
   // TODO: should these be set on ctx instead of on yaktor?
-  yaktor.set('authorize', yaktorSecurity.authorize)
-  yaktor.set('agentAuthorize', yaktorSecurity.agentAuthorize)
+  yaktor.authorize = yaktorSecurity.authorize
+  yaktor.agentAuthorize = yaktorSecurity.agentAuthorize
   done()
 }

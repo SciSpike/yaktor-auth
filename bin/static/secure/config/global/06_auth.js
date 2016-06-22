@@ -26,7 +26,7 @@ var PUBLIC_TOKEN_TTL = 60 * 10
 var PUBLIC_REFRESH_TOKEN_TTL = 60 * 10
 var CODE_TTL = 60 * 2
 var DEFAULT_ACCESS_REQUIREMENT = 'ANONYMOUS'
-var messageService = require('yaktor/app/services/messageService')
+var messageService = require('yaktor/services/messageService')
 
 // UTILS
 var urlSafe = function (s) {
@@ -407,9 +407,9 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
 
 // Endpoints
 module.exports = function (yaktor, done) {
-  yaktor.set('issueToken', issueToken)
-  yaktor.set('getCode', getCode)
-  yaktor.set('oauthServer', server)
-  yaktor.set('tokenAuthenticate', tokenAuthenticate)
+  yaktor.issueToken = issueToken
+  yaktor.getCode = getCode
+  yaktor.oauthServer = server
+  yaktor.tokenAuthenticate = tokenAuthenticate
   done()
 }

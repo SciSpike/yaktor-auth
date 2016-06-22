@@ -1,5 +1,6 @@
 /* global describe, it, before  */
 var path = require('path')
+var _ = require('lodash')
 var serverName = 'test'
 var serverCfg = {
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
@@ -31,34 +32,20 @@ var app = express()
 var bodyParser = require('body-parser')
 var config = require('config')
 
-var yctx = {}
-var yaktor = {
-  get: function (name) {
-    return yctx[ name ]
-  },
-  set: function (name, val) {
-    yctx[ name ] = val
-  }
-}
-var prefix = [ 'yaktor', 'servers', serverName ]
-var sctx = {}
+var yaktorConfig = JSON.parse(JSON.stringify(config.yaktor))
+var yaktor = {}
 var ctx = {
-  name: serverName,
-  get: function (name) {
-    return sctx[ name ]
-  },
-  set: function (name, val) {
-    sctx[ name ] = val
-  },
-  hascfg: function (name) {
-    return config.has(prefix.concat(name).join('.'))
-  },
-  getcfg: function (name) {
-    return config.get(prefix.concat(name).join('.'))
-  }
+  serverName: serverName,
+  app: app
 }
-ctx.set('yaktor', yaktor)
-ctx.set('app', app)
+
+Object.keys(yaktorConfig).forEach(function (setting) {
+  yaktor[ setting ] = yaktorConfig[ setting ]
+  if (setting !== 'servers') ctx[ setting ] = _.cloneDeep(yaktorConfig[ setting ])
+})
+Object.keys(yaktorConfig.servers[ serverName ]).forEach(function (setting) {
+  ctx[ setting ] = _.cloneDeep(yaktorConfig.servers[ serverName ][ setting ])
+})
 
 app.set('views', path.join(__dirname, '/../bin/static/secure'))
 app.use(bodyParser.urlencoded({
@@ -113,7 +100,7 @@ describe(
         }))
         async.eachSeries(initializers,
           function (initializer, next) {
-            var init = proxyquire(initializer.path, { path: fakePath })
+            var init = proxyquire(initializer.path, { path: fakePath, yaktor: yaktor })
             init(initializer.ctx, next)
           },
           function (err) {
