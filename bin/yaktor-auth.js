@@ -84,11 +84,11 @@ var secure = function (appDir, options, done) {
       next(err)
     })
   }, function (next) {
-    var initializers = [ '06_auth', '10_conversation_auth' ].map(function (it) {
+    var initializers = [ '06_auth.js', '10_conversation_auth.js' ].map(function (it) {
       return path.join(appDir, 'config', 'global', it)
     })
 
-    async.each(initializers, function (initializer) {
+    async.each(initializers, function (initializer, next) {
       if (options.force || !fs.existsSync(initializer)) return next()
 
       var initializerBackup
