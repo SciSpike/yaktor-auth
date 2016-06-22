@@ -8,7 +8,6 @@ process.env.NODE_CONFIG = JSON.stringify({
     }
   }
 })
-var proxyquire = require('proxyquire')
 var path = require('path')
 var assert = require('assert')
 var async = require('async')
@@ -18,10 +17,6 @@ var bind = function (object, method) {
 }
 
 var yaktor = {}
-var serverName = 'test'
-var ctx = {
-  serverName: serverName
-}
 
 var userInfo = {
   _id: '1234@email.com',
@@ -34,7 +29,7 @@ describe('c.security', function () {
     connector.connect(true, function (err, mm) {
       if (err) done(err)
       require(path.resolve('src-gen', 'modelAll'))
-      proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_conversation_auth'), { yaktor: yaktor })(ctx, function (err) {
+      require(path.resolve('bin', 'static', 'secure', 'config', 'global', '10_conversation_auth'))(yaktor, function (err) {
         if (err) return done(err)
 
         var mongoose = mm.mongoose

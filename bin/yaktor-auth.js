@@ -84,22 +84,30 @@ var secure = function (appDir, options, done) {
       next(err)
     })
   }, function (next) {
-    var initializer = path.join(appDir, 'config', 'global', '06_auth.js')
-    if (options.force || !fs.existsSync(initializer)) return next()
-
-    var initializerBackup
-    var i = 0
-    while (fs.existsSync(initializerBackup = initializer + '.bak.' + i)) { i++ }
-
-    console.log('WARNING: replacing %s; backup copy is %s', initializer, initializerBackup)
-    async.series([ function (next) {
-      fs.copy(initializer, initializerBackup, next)
-    }, function (next) {
-      fs.remove(initializer, next)
-    } ], function (err) {
-      if (err) console.log('ERROR: replacing global 06_auth.js initializer: %s', err.message)
-      next(err)
+    var initializers = [ '06_auth', '10_conversation_auth' ].map(function (it) {
+      return path.join(appDir, 'config', 'global', it)
     })
+
+    async.each(initializers, function (initializer) {
+      if (options.force || !fs.existsSync(initializer)) return next()
+
+      var initializerBackup
+      var i = 0
+      while (fs.existsSync(initializerBackup = initializer + '.bak.' + i)) { i++ }
+
+      console.log('WARNING: replacing %s; backup copy is %s', initializer, initializerBackup)
+      async.series([ function (next) {
+        fs.copy(initializer, initializerBackup, function (err) {
+          if (err) console.log('ERROR: copying backup global initializer %s: %s', initializer, err.message)
+          next(err)
+        })
+      }, function (next) {
+        fs.remove(initializer, function (err) {
+          if (err) console.log('ERROR: removing global initializer %s: %s', initializer, err.message)
+          next(err)
+        })
+      } ], next)
+    }, next)
   }, function (next) {
     var staticDir = path.join(__dirname, 'static', 'secure')
     fs.copy(staticDir, appDir, { clobber: options.force }, next)
