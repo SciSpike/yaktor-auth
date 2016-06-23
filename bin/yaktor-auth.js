@@ -67,48 +67,6 @@ var secure = function (appDir, options, done) {
   }, function (theirPackageJson, next) {
     fs.writeFile(path.join(appDir, 'package.json'), JSON.stringify(theirPackageJson, null, 2), next)
   }, function (next) {
-    var authConfig = path.join(appDir, 'config', 'global', 'auth', 'index.js')
-    if (options.force || !fs.existsSync(authConfig)) return next()
-
-    var authConfigBackup
-    var i = 0
-    while (fs.existsSync(authConfigBackup = authConfig + '.bak.' + i)) { i++ }
-
-    console.log('WARNING: replacing %s; backup copy is %s', authConfig, authConfigBackup)
-    async.series([ function (next) {
-      fs.copy(authConfig, authConfigBackup, next)
-    }, function (next) {
-      fs.remove(authConfig, next)
-    } ], function (err) {
-      if (err) console.log('ERROR: replacing global auth config: %s', err.message)
-      next(err)
-    })
-  }, function (next) {
-    var initializers = [ '06_auth.js', '10_conversation_auth.js' ].map(function (it) {
-      return path.join(appDir, 'config', 'global', it)
-    })
-
-    async.each(initializers, function (initializer, next) {
-      if (options.force || !fs.existsSync(initializer)) return next()
-
-      var initializerBackup
-      var i = 0
-      while (fs.existsSync(initializerBackup = initializer + '.bak.' + i)) { i++ }
-
-      console.log('WARNING: replacing %s; backup copy is %s', initializer, initializerBackup)
-      async.series([ function (next) {
-        fs.copy(initializer, initializerBackup, function (err) {
-          if (err) console.log('ERROR: copying backup global initializer %s: %s', initializer, err.message)
-          next(err)
-        })
-      }, function (next) {
-        fs.remove(initializer, function (err) {
-          if (err) console.log('ERROR: removing global initializer %s: %s', initializer, err.message)
-          next(err)
-        })
-      } ], next)
-    }, next)
-  }, function (next) {
     var staticDir = path.join(__dirname, 'static', 'secure')
     fs.copy(staticDir, appDir, { clobber: options.force }, next)
   }, function (next) {
@@ -134,7 +92,7 @@ argv.command('secure [path]')
   .description('adds/updates auth security to your app at [path]')
   .option('-s, --server <server>', 'server name; default is DEFAULT', 'DEFAULT')
   .option('-n, --nogensrc', 'do not generate sources')
-  .option('-f, --force', 'resistance is futile')
+  .option('-f, --force', 'overwrites files')
   .action(function (appDir, options) {
     options.server = options.server || 'DEFAULT'
     console.log('%ssecuring server %s at %s', options.force ? 'forcefully ' : '', options.server, appDir || './')
