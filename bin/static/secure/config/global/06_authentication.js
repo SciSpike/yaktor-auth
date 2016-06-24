@@ -407,9 +407,9 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
 
 // Endpoints
 module.exports = function (yaktor, done) {
-  yaktor.issueToken = issueToken
-  yaktor.getCode = getCode
-  yaktor.oauthServer = server
-  yaktor.tokenAuthenticate = tokenAuthenticate
+  yaktor.auth.issueToken = issueToken
+  yaktor.auth.getCode = getCode
+  yaktor.auth.oauthServer = server
+  yaktor.auth.tokenAuthenticate = tokenAuthenticate
   done()
 }

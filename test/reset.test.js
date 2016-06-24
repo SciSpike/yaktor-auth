@@ -92,7 +92,7 @@ describe(
         UserInfo = mongoose.model('UserInfo')
         PasswordResetInfo = mongoose.model('PasswordResetInfo')
         var initializers = [ {
-          path: path.resolve('bin', 'static', 'secure', 'config', 'global', '06_auth'),
+          path: path.resolve('bin', 'static', 'secure', 'config', 'global', '06_authentication'),
           ctx: yaktor
         } ]
         initializers = initializers.concat([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ].map(function (it) {

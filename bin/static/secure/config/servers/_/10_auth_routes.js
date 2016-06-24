@@ -10,7 +10,7 @@ var async = require('async')
 // Endpoints
 module.exports = function (ctx, done) {
   var app = ctx.app
-  var server = yaktor.oauthServer
+  var server = yaktor.auth.oauthServer
   var passwordResetService = ctx.passwordResetService
 
   var loginUrl = ctx.auth.url.login
