@@ -1,5 +1,3 @@
-var defer = require('config/defer').deferConfig
-
 module.exports = {
   url: {
     login: '/auth/login',
@@ -15,8 +13,6 @@ module.exports = {
     service: 'Gmail',
     user: 'engine-auth@scispike.com',
     pass: 'c0Nversation',
-    from: defer(function (config) {
-      return config.user
-    })
+    from: 'engine-auth@scispike.com'
   }
 }
