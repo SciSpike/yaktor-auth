@@ -7,7 +7,6 @@ module.exports = function (grunt) {
   })
   var dir = null
   var basePath = grunt.option('basePath') || './'
-  var registry = '--registry=http://npm.scispike.com'
   var path = require('path')
   var packageJson = require(path.resolve('package.json'))
   var tag = grunt.option('tag')
