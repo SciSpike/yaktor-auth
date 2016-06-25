@@ -8,19 +8,6 @@ var serverCfg = {
     actionsPath: 'actions'
   }
 }
-var cfg = {
-  yaktor: {
-    log: {
-      stdout: true,
-      level: 'info',
-      filename: ''
-    },
-    auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
-    servers: {}
-  }
-}
-cfg.yaktor.servers[ serverName ] = serverCfg
-process.env.NODE_CONFIG = JSON.stringify(cfg)
 
 var assert = require('assert')
 var express = require('express')
@@ -30,21 +17,25 @@ var flash = require('connect-flash')
 var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
-var config = require('config')
 
-var yaktorConfig = JSON.parse(JSON.stringify(config.yaktor))
-var yaktor = {}
+var yaktor = {
+  log: {
+    stdout: true,
+    level: 'info',
+    filename: ''
+  },
+  auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
+  servers: {}
+}
+yaktor.servers[ serverName ] = serverCfg
+
 var ctx = {
   serverName: serverName,
   app: app
 }
 
-Object.keys(yaktorConfig).forEach(function (setting) {
-  yaktor[ setting ] = yaktorConfig[ setting ]
-  if (setting !== 'servers') ctx[ setting ] = _.cloneDeep(yaktorConfig[ setting ])
-})
-Object.keys(yaktorConfig.servers[ serverName ]).forEach(function (setting) {
-  ctx[ setting ] = _.cloneDeep(yaktorConfig.servers[ serverName ][ setting ])
+Object.keys(yaktor.servers[ serverName ]).forEach(function (setting) {
+  ctx[ setting ] = _.cloneDeep(yaktor.servers[ serverName ][ setting ])
 })
 
 app.set('views', path.join(__dirname, '/../bin/static/secure'))
