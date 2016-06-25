@@ -25,7 +25,7 @@
     "mocha": "2.4.5",
     "mockgoose": "6.0.3",
     "mongoose": "4.4.17",
-    "mongoose-shortid": "^0.5.0",
+    "mongoose-shortid-nodeps": "0.6.5",
     "node-uuid": "1.4.7",
     "nodemailer": "2.3.2",
     "oauth2orize": "1.2.2",
@@ -42,8 +42,8 @@
     "standard-format": "2.2.0",
     "supertest-session": "2.0.1",
     "winston": "2.2.0",
-    "yaktor": "0.2.0-pre.0",
-    "yaktor-lang": "0.2.0-pre.0"
+    "yaktor": "~0.2.0-pre",
+    "yaktor-lang": "~0.2.0-pre"
   },
   "scripts": {
     "patch": "grunt release-patch",

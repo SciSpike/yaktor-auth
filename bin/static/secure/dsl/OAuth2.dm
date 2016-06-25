@@ -46,7 +46,7 @@ domain-model OAuth2 {
     key ( code )
   }
   abstract entity PasswordResetInfo {
-    ShortId code! unique "ASDFGHJKLQWERTYUPZXCVBNM23456789" 33445566
+    ShortId code? unique "ASDFGHJKLQWERTYUPZXCVBNM23456789" 33445566
     Date issued
     Date expires!
     ref UserInfo email

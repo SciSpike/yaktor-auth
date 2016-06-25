@@ -58,7 +58,7 @@ app.use(session({
   saveUninitialized: true
 }))
 app.use(flash())
-var connector = require('./mockgoose-connector')('mongoose-shortid')
+var connector = require('./mockgoose-connector')('mongoose-shortid-nodeps')
 var bcrypt = require('bcrypt')
 var uuid = require('node-uuid').v4
 var userId = '1234@email.com'

@@ -40,9 +40,9 @@ module.exports = function (grunt) {
       'add-owner': {
         command: [ 'npm owner add', grunt.option('owner'), packageJson.name, registry ].join(' ')
       },
-      'create-maintenance-branch':{
-        command:['git checkout -b ' + newTag + ' ' + tag,
-          'git branch --set-upstream-to=origin/' + newTag + ' ' + newTag].join('&&')
+      'create-maintenance-branch': {
+        command: [ 'git checkout -b ' + newTag + ' ' + tag,
+          'git branch --set-upstream-to=origin/' + newTag + ' ' + newTag ].join('&&')
       },
       'release-minor': {
         'command': [

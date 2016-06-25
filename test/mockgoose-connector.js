@@ -9,7 +9,7 @@
    * Usage:
    * <code>require('mockgoose-connector')('mongoose-shortid')</code>, or
    * <code>require('mongoose-connector')(['mongoose-shortid', ...])</code> or
-   * <code>require('mongoose-connector')(function() { require('mongoose-shortid') }</code>
+   * <code>require('mongoose-connector')(function() { require('mongoose-shortid-nodeps') }</code>
    * @returns {{connect: connect, mongoose: *, mockgoose: *}}
    */
   var init = function (modulesOrPremockFn) {

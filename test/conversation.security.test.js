@@ -11,7 +11,7 @@ process.env.NODE_CONFIG = JSON.stringify({
 var path = require('path')
 var assert = require('assert')
 var async = require('async')
-var connector = require('./mockgoose-connector')(function () { require('mongoose-shortid') })
+var connector = require('./mockgoose-connector')(function () { require('mongoose-shortid-nodeps') })
 var bind = function (object, method) {
   return object[ method ].bind(object)
 }
