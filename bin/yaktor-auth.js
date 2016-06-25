@@ -92,7 +92,7 @@ argv.command('secure [path]')
   .description('adds/updates auth security to your app at [path]')
   .option('-s, --server <server>', 'server name; default is DEFAULT', 'DEFAULT')
   .option('-n, --nogensrc', 'do not generate sources')
-  .option('-f, --force', 'resistance is futile')
+  .option('-f, --force', 'overwrites files')
   .action(function (appDir, options) {
     options.server = options.server || 'DEFAULT'
     console.log('%ssecuring server %s at %s', options.force ? 'forcefully ' : '', options.server, appDir || './')
@@ -124,6 +124,51 @@ argv.command('organize [path]')
       process.chdir(dir)
       process.exit(err ? 1 : 0)
     })
+  })
+var defaultTokenUrl = 'http://localhost:3000/auth/token'
+argv.command('token')
+  .description('adds/updates multitenancy support to your app at [path]')
+  .option('-u, --user <username>', 'user name; default is a@b.com', 'a@b.com')
+  .option('-p, --pass <password>', 'password; default is "password"', 'password')
+  .option('-c, --client-id <clientid>', 'client id; default is "0"', '0')
+  .option('-n, --exclude-newline', 'do not append a newline; default is false', false)
+  .option('-l, --login-url <loginurl>', 'url to login to; default is "' + defaultTokenUrl + '"', defaultTokenUrl)
+  .action(function (options) {
+    var http = require('http')
+    var url = require('url').parse(options.loginUrl)
+    var opts = {
+      method: 'POST',
+      hostname: url.hostname,
+      port: url.port,
+      path: url.path,
+      headers: {
+        'content-type': 'application/json',
+        'cache-control': 'no-cache'
+      }
+    }
+    var body = {
+      grant_type: 'password',
+      username: options.user,
+      password: options.pass,
+      client_id: options.clientId
+    }
+
+    var req = http.request(opts, function (res) {
+      var chunks = []
+
+      res.on('data', function (chunk) {
+        chunks.push(chunk)
+      })
+
+      res.on('end', function () {
+        var body = JSON.parse(Buffer.concat(chunks))
+        process.stdout.write(body.access_token + (options.excludeNewline ? '' : require('os').EOL))
+      })
+    })
+
+    req.write(JSON.stringify(body, 0, 2))
+
+    req.end()
   })
 
 var seed = function (seedFile, seedType, mongo, schema) {

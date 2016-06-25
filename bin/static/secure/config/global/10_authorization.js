@@ -7,7 +7,7 @@ var DEFAULT_ACCESS_REQUIREMENT = 'ANONYMOUS'
 var mongoose = require('mongoose')
 var Role = mongoose.model('Role')
 
-var yaktorSecurity = {
+var yaktorAuthorization = {
   accessPathResolution: function (req) {
     return req.agentQName
   },
@@ -17,7 +17,7 @@ var yaktorSecurity = {
     if (a && a.accessRequirement && a.accessRequirement.toUpperCase() !== 'DEFAULT') {
       ar = a.accessRequirement.toUpperCase()
     }
-    cb(null, yaktorSecurity.accessResolution[ ar ])
+    cb(null, yaktorAuthorization.accessResolution[ ar ])
   },
   accessResolution: {
     ANONYMOUS: function (req, cb) {
@@ -43,7 +43,7 @@ var yaktorSecurity = {
                 async.any(role.accessControlEntries, function (entry, nnext) {
                   // see if we have a granted "Action"
                   if (entry.action && entry.action.methods) {
-                    nnext(entry.access === 'GRANTED' && yaktorSecurity.accessPathResolution(req).match('^' + entry.action.path) && entry.action.methods.indexOf(req.method.toLowerCase()) > -1)
+                    nnext(entry.access === 'GRANTED' && yaktorAuthorization.accessPathResolution(req).match('^' + entry.action.path) && entry.action.methods.indexOf(req.method.toLowerCase()) > -1)
                   } else {
                     nnext(false)
                   }
@@ -73,7 +73,7 @@ var yaktorSecurity = {
       method: 'send'
     }
     async.waterfall([
-      async.apply(yaktorSecurity.accessRequirementResolution, req),
+      async.apply(yaktorAuthorization.accessRequirementResolution, req),
       function (accessRequirement, cb) {
         accessRequirement(req, function (granted) {
           cb(null, granted)
@@ -83,8 +83,8 @@ var yaktorSecurity = {
   }
 
 }
-module.exports = function (serverName, app, done) {
-  app.yaktor.authorize = yaktorSecurity.authorize
-  app.yaktor.agentAuthorize = yaktorSecurity.agentAuthorize
-  done && done()
+module.exports = function (yaktor, done) {
+  yaktor.auth.authorize = yaktorAuthorization.authorize
+  yaktor.auth.agentAuthorize = yaktorAuthorization.agentAuthorize
+  done()
 }

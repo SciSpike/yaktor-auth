@@ -1,26 +1,25 @@
 /* globals describe, it, before  */
 /* eslint-disable indent */
 var path = require('path')
+var _ = require('lodash')
 var serverName = 'test'
-var configPrefix = 'yaktor.servers.' + serverName + '.'
 var serverCfg = {
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
   path: {
     actionsPath: 'actions'
   }
 }
-var cfg = {
-  yaktor: {
-    log: {
-      stdout: true,
-      level: 'info',
-      filename: ''
-    },
-    servers: {}
-  }
+var yaktor = {
+
+  log: {
+    stdout: true,
+    level: 'info',
+    filename: ''
+  },
+  auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
+  servers: {}
 }
-cfg.yaktor.servers[ serverName ] = serverCfg
-process.env.NODE_CONFIG = JSON.stringify(cfg)
+yaktor.servers[ serverName ] = serverCfg
 
 var Session = require('supertest-session')
 var assert = require('assert')
@@ -31,15 +30,16 @@ var flash = require('connect-flash')
 var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
-var config = require('config')
-app.yaktor = {}
-app.getConfigVal = function (val) {
-  return config.get(configPrefix + val)
+
+var ctx = {
+  serverName: serverName,
+  app: app
 }
-app.hasConfigVal = function (val) {
-  return config.has(configPrefix + val)
-}
-app.set('actionsPath', path.resolve('actions'))
+
+Object.keys(yaktor.servers[ serverName ]).forEach(function (setting) {
+  ctx[ setting ] = _.cloneDeep(yaktor.servers[ serverName ][ setting ])
+})
+
 app.set('views', path.join(__dirname, '/../bin/static'))
 app.use(bodyParser.urlencoded({
   extended: true
@@ -51,7 +51,7 @@ app.use(session({
   saveUninitialized: true
 }))
 app.use(flash())
-var connector = require('./mockgoose-connector')('mongoose-shortid')
+var connector = require('./mockgoose-connector')('mongoose-shortid-nodeps')
 var bcrypt = require('bcrypt')
 var userId = '1234@email.com'
 var userId2 = '5678@email.com'
@@ -87,10 +87,12 @@ describe(
         AccessToken = mongoose.model('AccessToken')
         Role = mongoose.model('Role')
         async.series([
-          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), serverName, app),
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'global', '06_authentication'), {}), yaktor),
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), ctx),
           async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_auth_routes'), {
-            path: fakePath
-          }), serverName, app) ], function (err) {
+            path: fakePath,
+            yaktor: yaktor
+          }), ctx) ], function (err) {
           if (err) return done(err)
         })
         async.parallel([
@@ -152,18 +154,18 @@ describe(
     it('should give 403 when forbidden', function (done) {
       var session = new Session(app)
       async.waterfall([
-        bind(session.post('/auth/token').send({
-          client_id: '0',
-          grant_type: 'password',
-          username: userId,
-          password: userId
-        }).set('content-type', 'application/x-www-form-urlencoded')
-          .set('Accept', 'application/json').expect(200), 'end'),
-        function (res, cb) {
-          assert.ok(res.body.access_token)
-          cb(null, res.body)
-        }
-      ],
+          bind(session.post('/auth/token').send({
+            client_id: '0',
+            grant_type: 'password',
+            username: userId,
+            password: userId
+          }).set('content-type', 'application/x-www-form-urlencoded')
+            .set('Accept', 'application/json').expect(200), 'end'),
+          function (res, cb) {
+            assert.ok(res.body.access_token)
+            cb(null, res.body)
+          }
+        ],
         function (err, token) {
           assert.ifError(err)
           session.get('/auth/orized').set('authorization',
@@ -184,18 +186,18 @@ describe(
       })
       var session = new Session(app)
       async.waterfall([
-        bind(session.post('/auth/token').send({
-          client_id: '0',
-          grant_type: 'password',
-          username: userId2,
-          password: userId2
-        }).set('content-type', 'application/x-www-form-urlencoded')
-          .set('Accept', 'application/json').expect(200), 'end'),
-        function (res, cb) {
-          assert.ok(res.body.access_token)
-          cb(null, res.body)
-        }
-      ],
+          bind(session.post('/auth/token').send({
+            client_id: '0',
+            grant_type: 'password',
+            username: userId2,
+            password: userId2
+          }).set('content-type', 'application/x-www-form-urlencoded')
+            .set('Accept', 'application/json').expect(200), 'end'),
+          function (res, cb) {
+            assert.ok(res.body.access_token)
+            cb(null, res.body)
+          }
+        ],
         function (err, token) {
           assert.ifError(err)
           session.get('/auth/orized').set('authorization',

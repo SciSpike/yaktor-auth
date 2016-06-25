@@ -1,6 +1,6 @@
 {
   "name": "yaktor-auth",
-  "version": "1.0.0-pre.1",
+  "version": "0.2.0-pre.2",
   "dependencies": {
     "async": "2.0.0-rc.5",
     "commander": "2.9.0",
@@ -9,7 +9,6 @@
   "devDependencies": {
     "bcrypt": "0.8.6",
     "body-parser": "1.15.0",
-    "config": "1.20.1",
     "connect-ensure-login": "0.1.1",
     "connect-flash": "0.1.1",
     "ejs": "2.4.1",
@@ -21,10 +20,11 @@
     "grunt-shell": "1.3.0",
     "jade": "1.11.0",
     "load-grunt-tasks": "3.5.0",
+    "lodash": "4.13.1",
     "mocha": "2.4.5",
     "mockgoose": "6.0.3",
     "mongoose": "4.4.17",
-    "mongoose-shortid": "^0.5.0",
+    "mongoose-shortid-nodeps": "0.6.5",
     "node-uuid": "1.4.7",
     "nodemailer": "2.3.2",
     "oauth2orize": "1.2.2",
@@ -41,8 +41,8 @@
     "standard-format": "2.2.0",
     "supertest-session": "2.0.1",
     "winston": "2.2.0",
-    "yaktor": "1.0.0-pre.1",
-    "yaktor-lang": "1.0.0-pre.0"
+    "yaktor": "~0.2.0-pre",
+    "yaktor-lang": "~0.2.0-pre"
   },
   "scripts": {
     "patch": "grunt release-patch",

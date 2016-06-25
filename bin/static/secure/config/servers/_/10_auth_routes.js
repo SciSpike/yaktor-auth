@@ -4,22 +4,22 @@ var login = require('connect-ensure-login')
 var passport = require('passport')
 var mongoose = require('mongoose')
 var AccessClient = mongoose.model('AccessClient')
-
+var yaktor = require('yaktor')
 var path = require('path')
 var async = require('async')
 // Endpoints
-module.exports = function (serverName, app, done) {
-  var yaktor = app.yaktor
-  var server = yaktor.oauthServer
-  var passwordResetService = app.passwordResetService
+module.exports = function (ctx, done) {
+  var app = ctx.app
+  var server = yaktor.auth.oauthServer
+  var passwordResetService = ctx.passwordResetService
 
-  var loginUrl = app.getConfigVal('auth.url.login')
-  var logoutUrl = app.getConfigVal('auth.url.logout')
-  var authorizeUrl = app.getConfigVal('auth.url.authorize')
-  var tokenUrl = app.getConfigVal('auth.url.token')
-  var registerUrl = app.getConfigVal('auth.url.register')
-  var resetUrl = app.getConfigVal('auth.url.reset')
-  var requestResetUrl = app.getConfigVal('auth.url.resetRequest')
+  var loginUrl = ctx.auth.url.login
+  var logoutUrl = ctx.auth.url.logout
+  var authorizeUrl = ctx.auth.url.authorize
+  var tokenUrl = ctx.auth.url.token
+  var registerUrl = ctx.auth.url.register
+  var resetUrl = ctx.auth.url.reset
+  var requestResetUrl = ctx.auth.url.resetRequest
 
   var redirectWrapper = function (req, res, next) {
     var rr = res.redirect
@@ -97,7 +97,8 @@ module.exports = function (serverName, app, done) {
   app.get(requestResetUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'requestReset.ejs')), {
       action: requestResetUrl,
-      message: req.flash('error') || req.flash('message')
+      message: req.flash('error') || req.flash('message') || '',
+      email: req.query[ 'email' ] || req.param[ 'email' ] || ''
     })
   })
 
@@ -108,7 +109,7 @@ module.exports = function (serverName, app, done) {
       },
       function (info, next) {
         passwordResetService.sendPasswordResetEmail(req.body.email, {
-          urlPrefix: app.get('urlPrefix'),
+          urlPrefix: ctx.urlPrefix,
           verifyUrl: resetUrl,
           codeName: 'code',
           code: info.code
@@ -136,7 +137,7 @@ module.exports = function (serverName, app, done) {
   app.get(resetUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'reset.ejs')), {
       action: resetUrl,
-      code: req.param('code'),
+      code: req.query[ 'code' ] || req.params[ 'code' ] || '',
       message: req.flash('error')
     })
   })
@@ -161,7 +162,7 @@ module.exports = function (serverName, app, done) {
   app.get(registerUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'register.ejs')), {
       action: registerUrl,
-      email: req.flash('email') || req.param('email'),
+      email: req.flash('email') || req.param('email') || '',
       message: req.flash('error') || req.flash('message')
     })
   })
@@ -176,7 +177,7 @@ module.exports = function (serverName, app, done) {
       return res.redirect(registerUrl)
     }
     passwordResetService.processRegistration(email, function (err,
-      user) {
+                                                              user) {
       if (err) {
         req.flash('error', err.message)
         req.flash('email', email)
@@ -253,10 +254,10 @@ module.exports = function (serverName, app, done) {
     server.errorHandler())
 
   // ////////////////////////////////////
-    // FROM HERE ALL ROUTES ARE SECURED //
-    // ////////////////////////////////////
+  // FROM HERE ALL ROUTES ARE SECURED //
+  // ////////////////////////////////////
 
-  var actions = require(path.resolve(app.getConfigVal('path.actionsPath')))
+  var actions = require(path.resolve(ctx.path.actionsPath))
   var regexes = Object.keys(actions).map(function (p) {
     var rx = new RegExp(p)
     rx.accessRequirements = actions[ p ]

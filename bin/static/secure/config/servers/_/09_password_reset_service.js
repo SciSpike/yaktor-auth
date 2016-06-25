@@ -17,8 +17,8 @@ var ONE_DAY = 1000 * 60 * 60 * 24
 var uuid = require('node-uuid')
 var async = require('async')
 
-module.exports = function (serverName, app, done) {
-  var mailer = app.authMailer
+module.exports = function (ctx, done) {
+  var mailer = ctx.authMailer
 
   var my = {
     error: function (msg) {
@@ -149,7 +149,7 @@ module.exports = function (serverName, app, done) {
     return cond ? cb() : cb(my.error(msg))
   }
 
-  app.passwordResetService = my
+  ctx.passwordResetService = my
 
-  done && done()
+  done()
 }

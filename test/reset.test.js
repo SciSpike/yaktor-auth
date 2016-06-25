@@ -1,25 +1,13 @@
 /* global describe, it, before  */
 var path = require('path')
+var _ = require('lodash')
 var serverName = 'test'
-var configPrefix = 'yaktor.servers.' + serverName + '.'
 var serverCfg = {
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
   path: {
     actionsPath: 'actions'
   }
 }
-var cfg = {
-  yaktor: {
-    log: {
-      stdout: true,
-      level: 'info',
-      filename: ''
-    },
-    servers: {}
-  }
-}
-cfg.yaktor.servers[ serverName ] = serverCfg
-process.env.NODE_CONFIG = JSON.stringify(cfg)
 
 var assert = require('assert')
 var express = require('express')
@@ -29,16 +17,27 @@ var flash = require('connect-flash')
 var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
-var config = require('config')
-app.yaktor = {}
-app.getConfigVal = function (val) {
-  return config.get(configPrefix + val)
+
+var yaktor = {
+  log: {
+    stdout: true,
+    level: 'info',
+    filename: ''
+  },
+  auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
+  servers: {}
 }
-app.hasConfigVal = function (val) {
-  return config.has(configPrefix + val)
+yaktor.servers[ serverName ] = serverCfg
+
+var ctx = {
+  serverName: serverName,
+  app: app
 }
 
-app.set('actionsPath', path.resolve('actions'))
+Object.keys(yaktor.servers[ serverName ]).forEach(function (setting) {
+  ctx[ setting ] = _.cloneDeep(yaktor.servers[ serverName ][ setting ])
+})
+
 app.set('views', path.join(__dirname, '/../bin/static/secure'))
 app.use(bodyParser.urlencoded({
   extended: true
@@ -50,7 +49,7 @@ app.use(session({
   saveUninitialized: true
 }))
 app.use(flash())
-var connector = require('./mockgoose-connector')('mongoose-shortid')
+var connector = require('./mockgoose-connector')('mongoose-shortid-nodeps')
 var bcrypt = require('bcrypt')
 var uuid = require('node-uuid').v4
 var userId = '1234@email.com'
@@ -83,10 +82,17 @@ describe(
         var mongoose = mm.mongoose
         UserInfo = mongoose.model('UserInfo')
         PasswordResetInfo = mongoose.model('PasswordResetInfo')
-        async.eachSeries([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ],
-          function (mod, next) {
-            var init = proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', mod), { path: fakePath })
-            init(serverName, app, next)
+        var initializers = [ {
+          path: path.resolve('bin', 'static', 'secure', 'config', 'global', '06_authentication'),
+          ctx: yaktor
+        } ]
+        initializers = initializers.concat([ '06_auth_middleware', '09_email', '09_password_reset_service', '10_auth_routes' ].map(function (it) {
+          return { path: path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', it), ctx: ctx }
+        }))
+        async.eachSeries(initializers,
+          function (initializer, next) {
+            var init = proxyquire(initializer.path, { path: fakePath, yaktor: yaktor })
+            init(initializer.ctx, next)
           },
           function (err) {
             if (err) return done(err)
