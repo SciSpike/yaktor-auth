@@ -97,7 +97,8 @@ module.exports = function (ctx, done) {
   app.get(requestResetUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'requestReset.ejs')), {
       action: requestResetUrl,
-      message: req.flash('error') || req.flash('message')
+      message: req.flash('error') || req.flash('message') || '',
+      email: req.query[ 'email' ] || req.param[ 'email' ] || ''
     })
   })
 
@@ -136,7 +137,7 @@ module.exports = function (ctx, done) {
   app.get(resetUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'reset.ejs')), {
       action: resetUrl,
-      code: req.param('code'),
+      code: req.query[ 'code' ] || req.params[ 'code' ] || '',
       message: req.flash('error')
     })
   })
@@ -161,7 +162,7 @@ module.exports = function (ctx, done) {
   app.get(registerUrl, function (req, res) {
     res.render(path.resolve(path.join('oauth', 'register.ejs')), {
       action: registerUrl,
-      email: req.flash('email') || req.param('email'),
+      email: req.flash('email') || req.param('email') || '',
       message: req.flash('error') || req.flash('message')
     })
   })

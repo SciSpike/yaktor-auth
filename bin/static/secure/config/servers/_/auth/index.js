@@ -9,10 +9,15 @@ module.exports = {
     resetRequest: '/auth/reset/request'
   },
   mail: {
-    transport: 'SMTP',
-    service: 'Gmail',
-    user: 'engine-auth@scispike.com',
-    pass: 'c0Nversation',
-    from: 'engine-auth@scispike.com'
+    loggingMailer: { // this controls the logging of emails sent by yaktor when there is no nodemailer configured
+      level: 'warn'
+    },
+    nodemailer: {
+      transport: 'SMTP',
+      service: '', // see https://nodemailer.com/2-0-0-beta/setup-smtp/well-known-services/
+      user: '',
+      pass: '',
+      from: '' // this defaults to the value of user above
+    }
   }
 }
