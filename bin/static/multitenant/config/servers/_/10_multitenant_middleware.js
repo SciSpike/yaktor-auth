@@ -5,7 +5,7 @@ var fs = require('fs')
 var contextService = require('request-context')
 var passport = require('passport')
 var Organization = require('mongoose').model('Organization')
-var Response = require('yaktor/app/services/rest/Response')
+var Response = require('yaktor/services/Response')
 Response.Failure = function (err) {
   console.log(err)
   this.status = Response.FAILURE
@@ -49,12 +49,13 @@ module.exports = function (ctx, done) {
     regexes: regexes
   }))
 
+  //Similar to standard routes addition but this time on the tenant
   var routes = path.resolve(ctx.path.routesPath)
   if (fs.existsSync(routes)) {
     fs.readdirSync(routes).forEach(function (file) {
       var item = path.join(routes, file)
       var route = require(item)
-      route(tenant)
+      route({app:tenant})
     })
   }
 

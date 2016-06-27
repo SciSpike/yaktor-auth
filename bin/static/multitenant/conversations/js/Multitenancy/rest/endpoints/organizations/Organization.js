@@ -6,7 +6,7 @@
   var UserInfo = require('mongoose').model('UserInfo')
   var yaktor = require('yaktor')
   var converter = yaktor.converter
-  var Response = yaktor.services.rest.Response
+  var Response = require('yaktor/services/Response')
   var async = require('async')
   /*
    * create
