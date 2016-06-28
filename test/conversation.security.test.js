@@ -17,7 +17,7 @@ var userInfo = {
   password: 'password',
   roles: [ '1' ]
 }
-describe('c.security', function () {
+describe(path.basename(__filename), function () {
   before('config', function (done) {
     connector.connect(true, function (err, mm) {
       if (err) done(err)

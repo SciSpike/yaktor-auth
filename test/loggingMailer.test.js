@@ -27,7 +27,7 @@ var ctx = {
   }
 }
 
-describe('passwordResetService', function () {
+describe(path.basename(__filename), function () {
   var mongoose
   before('config', function (done) {
     connector.connect(true, function (err, mm) {
@@ -35,8 +35,6 @@ describe('passwordResetService', function () {
 
       require(path.resolve('src-gen', 'modelAll'))
       mongoose = mm.mongoose
-      UserInfo = mongoose.model('UserInfo')
-      PasswordResetInfo = mongoose.model('PasswordResetInfo')
       done()
     })
   })
@@ -50,7 +48,7 @@ describe('passwordResetService', function () {
       error: function () { e++ }
     })
 
-    var proxy = { 'yaktor/logger': logger, mongoose: mongoose }
+    var proxy = { 'yaktor/logger': logger, mongoose: Global(mongoose), bcrypt: Global(require('bcrypt')) }
     var email = proxyquire(path.join('..', 'bin', 'static', 'secure', 'config', 'servers', '_', '09_email.js'), proxy)
     var reset = proxyquire(path.join('..', 'bin', 'static', 'secure', 'config', 'servers', '_', '09_password_reset_service.js'), proxy)
     async.series([
@@ -59,7 +57,7 @@ describe('passwordResetService', function () {
         assert.equal(w, 1) // ensures warning message was logged
         next()
       },
-      async.apply(reset, ctx),
+      async.apply(reset, ctx)
     ], function (err) {
       assert.ifError(err)
       e = 0

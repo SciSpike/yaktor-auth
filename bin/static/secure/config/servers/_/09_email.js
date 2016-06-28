@@ -6,7 +6,7 @@ module.exports = function (ctx, done) {
   var transport = ctx.auth.mail.nodemailer.transport
   var service = ctx.auth.mail.nodemailer.service
   var user = ctx.auth.mail.nodemailer.user
-
+  var loggingMailer
   if (!(transport && service && user)) {
     // then just log email messages
     var level = ctx.auth.mail.loggingMailer.level

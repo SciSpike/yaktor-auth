@@ -49,13 +49,13 @@ module.exports = function (ctx, done) {
     regexes: regexes
   }))
 
-  //Similar to standard routes addition but this time on the tenant
+  // Similar to standard routes addition but this time on the tenant
   var routes = path.resolve(ctx.path.routesPath)
   if (fs.existsSync(routes)) {
     fs.readdirSync(routes).forEach(function (file) {
       var item = path.join(routes, file)
       var route = require(item)
-      route({app:tenant})
+      route({ app: tenant })
     })
   }
 

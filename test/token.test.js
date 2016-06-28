@@ -75,7 +75,7 @@ var fakePath = {
   }
 }
 describe(
-  'auth',
+  path.basename(__filename),
   function () {
     before('config', function (done) {
       connector.connect(true, function (err, mm) {

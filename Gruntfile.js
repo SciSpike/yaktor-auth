@@ -31,13 +31,13 @@ module.exports = function (grunt) {
     },
     shell: {
       'publish': {
-        command: [ 'npm publish', registry ].join(' ')
+        command: [ 'npm publish' ].join(' ')
       },
       'pull': {
         command: 'git pull'
       },
       'add-owner': {
-        command: [ 'npm owner add', grunt.option('owner'), packageJson.name, registry ].join(' ')
+        command: [ 'npm owner add', grunt.option('owner'), packageJson.name ].join(' ')
       },
       'create-maintenance-branch': {
         command: [ 'git checkout -b ' + newTag + ' ' + tag,
