@@ -1,6 +1,7 @@
 {
   "name": "yaktor-auth",
   "version": "0.2.0-pre.3",
+  "license": "Apache-2.0",
   "dependencies": {
     "async": "2.0.0-rc.5",
     "commander": "2.9.0",
