@@ -94,13 +94,22 @@ process.on('uncaughtException', function (err) {
 })
 var path = require('path')
 var async = require('async')
+var yaktor = require('yaktor')
 
-async.eachSeries([ '02_mongo', '03_schema' ], function (it, next) {
-  require(path.resolve('config', 'global', it))({}, next)
+async.eachSeries([ '02_mongo', '02_shortid', '03_schema' ], function (it, next) {
+  var config = require(path.resolve('config', 'global', it))
+  if (typeof config === 'function') {
+    config(yaktor, next)
+  } else {
+    next()
+  }
 }, function (err) {
-  if (err) return process.exit(1)
+  if (err) {
+    console.log('ERROR!', err, err.stack)
+    return process.exit(1)
+  }
 
-  var converter = require(path.resolve('node_modules', 'yaktor', 'app', 'services', 'conversionService'))
+  var converter = require(path.join('yaktor', 'services', 'conversionService'))
   var mongoose = require('mongoose')
   var Role = mongoose.model('Role')
   var UserInfo = mongoose.model('UserInfo')
