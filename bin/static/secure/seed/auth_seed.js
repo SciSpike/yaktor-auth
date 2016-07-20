@@ -94,9 +94,9 @@ process.on('uncaughtException', function (err) {
 })
 var path = require('path')
 var async = require('async')
+var yaktor = require('yaktor')
 
 async.eachSeries([ '02_mongo', '02_shortid', '03_schema' ], function (it, next) {
-  var yaktor = require('yaktor')
   var config = require(path.resolve('config', 'global', it))
   if (typeof config === 'function') {
     config(yaktor, next)
