@@ -54,7 +54,25 @@ var moveServerConfigFiles = function (appDir, options, done) {
     fs.remove(src, next)
   } ], done)
 }
-
+var dslrx = /(.*\.(?:dm|cl))\.x$/i
+var renameDslFiles = function (appDir, options, done) {
+  var src = path.join(appDir, 'dsl')
+  async.waterfall([ function (next) {
+    fs.readdir(src, next)
+  }, function (files, next) {
+    async.each(files, function (file, next) {
+      var match = dslrx.exec(file)
+      if (!match) return next()
+      var filepath = path.join(src, file)
+      var stats = fs.lstatSync(filepath)
+      if (stats.isFile()) {
+        fs.move(filepath, path.join(src, match[ 1 ]), { clobber: options.force }, next)
+      } else {
+        next()
+      }
+    }, next)
+  } ], done)
+}
 var secure = function (appDir, options, done) {
   async.waterfall([ function (next) {
     fs.readFile(path.join(appDir, 'package.json'), next)
@@ -71,6 +89,8 @@ var secure = function (appDir, options, done) {
     fs.copy(staticDir, appDir, { clobber: options.force }, next)
   }, function (next) {
     moveServerConfigFiles(appDir, options, next)
+  }, function (next) {
+    renameDslFiles(appDir, options, next)
   }, function (next) {
     exec('npm', [ 'install' ], next)
   }, function (next) {
