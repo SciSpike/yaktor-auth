@@ -12,7 +12,6 @@ module.exports = function (grunt) {
   var tag = 'v' + packageJson.version.match(/^(\d+\.\d+\.\d+).*$/)[ 1 ]
   var newTag = tag.replace(/\.\d+$/, '.x')
   var master = grunt.option('source-branch') || 'master'
-  var master = grunt.option('source-branch') || 'master'
 
   var config = {
     'basePath': basePath,

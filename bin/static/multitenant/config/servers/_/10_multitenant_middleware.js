@@ -5,7 +5,6 @@ var fs = require('fs')
 var contextService = require('request-context')
 var passport = require('passport')
 var Organization = require('mongoose').model('Organization')
-var Response = require('yaktor/services/Response')
 
 module.exports = function (ctx, done) {
   var express = require('express')

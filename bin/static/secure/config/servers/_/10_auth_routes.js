@@ -229,7 +229,7 @@ module.exports = function (ctx, done) {
    * or
    *
    * curl -X POST -L -u 'clientId:client$3cR*t' \
-   * "http://localhost:3000/auth/token" \ 
+   * "http://localhost:3000/auth/token" \
    *  -d 'grant_type=password&username=user@place.net&password=myP4$$' -v -H\
    * "content-type=application/x-www-form-urlencoded"
    *
@@ -269,7 +269,7 @@ module.exports = function (ctx, done) {
   }))
 
   /*
-   * A test endpoint 
+   * A test endpoint
    *
    * curl -X GET -L "http://localhost:3000/auth/test" -v \
    * -H "authorization: Bearer \
