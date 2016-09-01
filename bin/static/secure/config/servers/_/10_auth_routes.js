@@ -209,41 +209,41 @@ module.exports = function (ctx, done) {
   /*
    * Create a user
    *
-   * curl -H "content-type:application/json" -d
-   * '{"email":"user@place.net","password":"myP4$$","name":"name"}' -X POST -L
-   * "http://localhost:3000/userInfo"
+   * curl -H "content-type:application/json" \
+   * -d '{"email":"user@place.net","password":"myP4$$","name":"name"}' -X POST -L \
+   * "http://localhost:3000/userInfo" \
    *
    * Create a client
    *
-   * curl -H "content-type:application/json" -d
-   * '{"id":"clientId","clientSecret":"client$3cR*t","name":"name","redirectUri":"http://localhost:3000/"}'
+   * curl -H "content-type:application/json" \
+   * -d '{"id":"clientId","clientSecret":"client$3cR*t","name":"name","redirectUri":"http://localhost:3000/"}' \
    * -X POST -L "http://localhost:3000/client"
    *
    * Execute the exchange of AuthorizationCode to AccessToken
    *
-   * curl -X POST -L -u 'clientId:client$3cR*t'
-   * "http://localhost:3000/auth/token" -d
-   * 'grant_type=authorization_code&code=NRKpQEW6vmsxiWl6dV%2Fw62Mo&redirect_uri=http://localhost:3000/'
+   * curl -X POST -L -u 'clientId:client$3cR*t' \
+   * "http://localhost:3000/auth/token" \
+   * -d 'grant_type=authorization_code&code=NRKpQEW6vmsxiWl6dV%2Fw62Mo&redirect_uri=http://localhost:3000/' \
    * -v -H "content-type=application/x-www-form-urlencoded"
    *
    * or
    *
-   * curl -X POST -L -u 'clientId:client$3cR*t'
-   * "http://localhost:3000/auth/token" -d
-   * 'grant_type=password&username=user@place.net&password=myP4$$' -v -H
+   * curl -X POST -L -u 'clientId:client$3cR*t' \
+   * "http://localhost:3000/auth/token" \ 
+   *  -d 'grant_type=password&username=user@place.net&password=myP4$$' -v -H\
    * "content-type=application/x-www-form-urlencoded"
    *
    * or
    *
-   * curl -X POST -L "http://localhost:3000/auth/token" -d
-   * 'client_id=0&grant_type=password&username=a@b.com&password=password' -v -H
+   * curl -X POST -L "http://localhost:3000/auth/token" \
+   * -d 'client_id=0&grant_type=password&username=a@b.com&password=password' -v -H \
    * "content-type=application/x-www-form-urlencoded"
    *
    * or
    *
-   * curl -X POST -L -u 'clientId:client$3cR*t'
-   * "http://localhost:3000/auth/token" -d
-   * 'grant_type=refresh_token&refresh_token=qaYrkszQx9KANsS8mzSBxeenxeU7AxU6DnGWKQAFDwCcAYLDCtXybA0Ngl9JrnfI6WOCK27mGj8ep2ctgkUi4g'
+   * curl -X POST -L -u 'clientId:client$3cR*t' \
+   * "http://localhost:3000/auth/token" \
+   * -d 'grant_type=refresh_token&refresh_token=qaYrkszQx9KANsS8mzSBxeenxeU7AxU6DnGWKQAFDwCcAYLDCtXybA0Ngl9JrnfI6WOCK27mGj8ep2ctgkUi4g' \
    * -v -H "content-type=application/x-www-form-urlencoded"
    */
   app.post(tokenUrl,
@@ -269,8 +269,10 @@ module.exports = function (ctx, done) {
   }))
 
   /*
-   * A test endpoint curl -X GET -L "http://localhost:3000/auth/test" -v -H
-   * "authorization: Bearer
+   * A test endpoint 
+   *
+   * curl -X GET -L "http://localhost:3000/auth/test" -v \
+   * -H "authorization: Bearer \
    * rwPtRF6e3F/AotFHcVy4dATN2SmxBR0QIeBHUQwrKAQX4EbcuiFupdLOLiwFsXe9HVf6CQknRcVsCgDQYZtmTg"
    */
   app.get('/auth/test',
@@ -300,7 +302,7 @@ module.exports = function (ctx, done) {
       title: id
     })
     cb()
-  }, function (err, result) { // eslint-disable-line handle-callback-err
+  }, function (ignoredError, result) {
     actionKeys.sort(function (a, b) {
       return a.id.localeCompare(b.id)
     })

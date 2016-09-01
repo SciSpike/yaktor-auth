@@ -6,12 +6,6 @@ var contextService = require('request-context')
 var passport = require('passport')
 var Organization = require('mongoose').model('Organization')
 var Response = require('yaktor/services/Response')
-Response.Failure = function (err) {
-  console.log(err)
-  this.status = Response.FAILURE
-  this.error = new Error(err.stack + '\nRethrown:').stack
-  this.message = err.message
-}
 
 module.exports = function (ctx, done) {
   var express = require('express')

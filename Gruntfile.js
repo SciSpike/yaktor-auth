@@ -9,8 +9,9 @@ module.exports = function (grunt) {
   var basePath = grunt.option('basePath') || './'
   var path = require('path')
   var packageJson = require(path.resolve('package.json'))
-  var tag = grunt.option('tag')
-  var newTag = tag && tag.replace(/\.\d*$/, '.x')
+  var tag = 'v' + packageJson.version.match(/^(\d+\.\d+\.\d+).*$/)[ 1 ]
+  var newTag = tag.replace(/\.\d+$/, '.x')
+  var master = grunt.option('source-branch') || 'master'
   var master = grunt.option('source-branch') || 'master'
 
   var config = {
@@ -40,8 +41,7 @@ module.exports = function (grunt) {
         command: [ 'npm owner add', grunt.option('owner'), packageJson.name ].join(' ')
       },
       'create-maintenance-branch': {
-        command: [ 'git checkout -b ' + newTag + ' ' + tag,
-          'git branch --set-upstream-to=origin/' + newTag + ' ' + newTag ].join('&&')
+        command: 'git checkout -b ' + newTag + ' ' + tag
       },
       'release-minor': {
         'command': [
