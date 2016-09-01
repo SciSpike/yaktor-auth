@@ -38,7 +38,7 @@ var yaktorAuthorization = {
             }
             Role.find({
               path: new RegExp('^' + role.path + '.*')
-            }, 'accessControlEntries', function (err, roles) { // eslint-disable-line handle-callback-err
+            }, 'accessControlEntries', function (ignoredError, roles) {
               async.any(roles, function (role, next) {
                 async.any(role.accessControlEntries, function (entry, nnext) {
                   // see if we have a granted "Action"
