@@ -54,7 +54,7 @@ var moveServerConfigFiles = function (appDir, options, done) {
     fs.remove(src, next)
   } ], done)
 }
-var dslrx = /(.*\.(?:dm|cl))\.x$/i
+var dslrx = /(.*\.(?:ydm|yc))\.x$/i
 var renameDslFiles = function (appDir, options, done) {
   var src = path.join(appDir, 'dsl')
   async.waterfall([ function (next) {
