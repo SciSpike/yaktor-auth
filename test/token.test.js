@@ -9,8 +9,13 @@ var serverCfg = {
     actionsPath: 'actions'
   }
 }
-var yaktor = {
+function Global (m) {
+  m[ '@noCallThru' ] = true
+  m[ '@global' ] = true
+  return m
+}
 
+var yaktor = Global({
   log: {
     stdout: true,
     level: 'info',
@@ -18,7 +23,7 @@ var yaktor = {
   },
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
   servers: {}
-}
+})
 yaktor.servers[ serverName ] = serverCfg
 
 var Session = require('supertest-session')
@@ -52,7 +57,7 @@ app.use(session({
 }))
 app.use(flash())
 var connector = require('./mockgoose-connector')('mongoose-shortid-nodeps')
-var bcrypt = require('bcrypt')
+var bcrypt = Global(require('bcrypt'))
 var userId = '1234@email.com'
 var userId2 = '5678@email.com'
 var password = bcrypt.hashSync(userId, 10)
@@ -60,20 +65,12 @@ var password2 = bcrypt.hashSync(userId2, 10)
 var bind = function (object, method) {
   return object[ method ].bind(object)
 }
+var passport = Global(require('passport'))
 var UserInfo
 var AccessToken
 var Role
 var mongoose
-var fakePath = {
-  join: path.join,
-  resolve: function (p) {
-    if (p.match('oauth')) {
-      return path.resolve('bin', 'static', p)
-    } else {
-      return path.resolve.apply(path, arguments)
-    }
-  }
-}
+
 describe(
   path.basename(__filename),
   function () {
@@ -82,17 +79,15 @@ describe(
         if (err) return done(err)
 
         require(path.resolve('src-gen', 'modelAll'))
-        mongoose = mm.mongoose
+        mongoose = Global(mm.mongoose)
+        var proxy = { mongoose: mongoose, bcrypt: bcrypt, yaktor: yaktor, passport: passport }
         UserInfo = mongoose.model('UserInfo')
         AccessToken = mongoose.model('AccessToken')
         Role = mongoose.model('Role')
         async.series([
-          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'global', '06_authentication'), {}), yaktor),
-          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), {}), ctx),
-          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_auth_routes'), {
-            path: fakePath,
-            yaktor: yaktor
-          }), ctx) ], function (err) {
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'global', '06_authentication'), proxy), yaktor),
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '06_auth_middleware'), proxy), ctx),
+          async.apply(proxyquire(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', '10_auth_routes'), proxy), ctx) ], function (err) {
           if (err) return done(err)
         })
         async.parallel([

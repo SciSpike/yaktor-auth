@@ -8,6 +8,11 @@ var serverCfg = {
     actionsPath: 'actions'
   }
 }
+function Global (m) {
+  m[ '@noCallThru' ] = true
+  m[ '@global' ] = true
+  return m
+}
 
 var assert = require('assert')
 var express = require('express')
@@ -18,7 +23,7 @@ var proxyquire = require('proxyquire')
 var app = express()
 var bodyParser = require('body-parser')
 
-var yaktor = {
+var yaktor = Global({
   log: {
     stdout: true,
     level: 'info',
@@ -26,7 +31,7 @@ var yaktor = {
   },
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'global', 'auth')),
   servers: {}
-}
+})
 yaktor.servers[ serverName ] = serverCfg
 
 var ctx = {
@@ -50,10 +55,11 @@ app.use(session({
 }))
 app.use(flash())
 var connector = require('./mockgoose-connector')('mongoose-shortid-nodeps')
-var bcrypt = require('bcrypt')
+var bcrypt = Global(require('bcrypt'))
 var uuid = require('node-uuid').v4
 var userId = '1234@email.com'
 var password = bcrypt.hashSync(userId, 10)
+var passport = Global(require('passport'))
 var bind = function (object, method) {
   return object[ method ].bind(object)
 }
@@ -79,7 +85,7 @@ describe(
         if (err) return done(err)
 
         require(path.resolve('src-gen', 'modelAll'))
-        var mongoose = mm.mongoose
+        var mongoose = Global(mm.mongoose)
         UserInfo = mongoose.model('UserInfo')
         PasswordResetInfo = mongoose.model('PasswordResetInfo')
         var initializers = [ {
@@ -91,7 +97,13 @@ describe(
         }))
         async.eachSeries(initializers,
           function (initializer, next) {
-            var init = proxyquire(initializer.path, { path: fakePath, yaktor: yaktor })
+            var init = proxyquire(initializer.path, {
+              path: fakePath,
+              yaktor: yaktor,
+              mongoose: mongoose,
+              bcrypt: bcrypt,
+              passport: passport
+            })
             init(initializer.ctx, next)
           },
           function (err) {

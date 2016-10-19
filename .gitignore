@@ -9,6 +9,7 @@
 /servers
 /simulator
 /src-gen
+/rest
 /.settings
 *.csv
 *.dat
