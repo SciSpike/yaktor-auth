@@ -3,8 +3,7 @@ dist: trusty
 language: node_js
 node_js:
   - "4"
-before_install:
-  - npm install
+before_script:
   - npm run gen-src
 after_success:
   - ./run.sh ./travis-npm-publish.sh
