@@ -50,7 +50,8 @@
     "gen-src": "find . -name '*.yc' -o -name '*.ydm' -follow | xargs yaktor-lang",
     "lint": "standard --verbose",
     "format": "standard --fix",
-    "test": "mocha -R spec test/*.test.js && npm run lint"
+    "test": "mocha -R spec test/*.test.js && npm run lint",
+    "ci": "npm run test"
   },
   "author": {
     "name": "jonathan.kamke",
