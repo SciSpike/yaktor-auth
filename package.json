@@ -47,7 +47,8 @@
   "scripts": {
     "patch": "grunt release-patch",
     "minor": "grunt release-minor",
-    "gen-src": "find . test -maxdepth 1 -name '*.yc' -o -name '*.ydm' -follow | xargs yaktor-lang",
+    "copy-dsls": "mkdir -p .tmp && cp bin/static/secure/*.x .tmp && for dsl in $(ls .tmp/*.x); do mv $dsl ${dsl%.x}; done",
+    "gen-src": "npm run copy-dsls && find . test .tmp -maxdepth 1 -name '*.yc' -o -name '*.ydm' -follow | xargs yaktor-lang",
     "lint": "standard --verbose",
     "format": "standard --fix",
     "test": "mocha -R spec test/*.test.js && npm run lint",

@@ -4,8 +4,6 @@ language: node_js
 node_js:
   - "4"
 before_script:
-  - ls -al .
   - npm run gen-src
-  - ls -al .
 after_success:
   - ./run.sh ./travis-npm-publish.sh

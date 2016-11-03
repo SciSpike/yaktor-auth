@@ -19,5 +19,5 @@
 *.gz
 *.seed
 .idea/
-
+.tmp/
 .project
