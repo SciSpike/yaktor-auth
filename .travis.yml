@@ -4,6 +4,10 @@ language: node_js
 node_js:
   - "4"
 before_script:
+  - ls -al .
+  - ls -al src-gen
   - npm run gen-src
+  - ls -al .
+  - ls -al src-gen
 after_success:
   - ./run.sh ./travis-npm-publish.sh
