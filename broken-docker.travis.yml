@@ -1,0 +1,16 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - env | grep TRAVIS > .env
+  - docker pull yaktor/node:0.39.0
+  - ./run.sh npm install
+  - ./run.sh npm run gen-src
+
+script:
+  - ./run.sh npm run ci
+
+after_success:
+  - ./run.sh ./travis-npm-publish.sh

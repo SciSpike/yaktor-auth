@@ -1,16 +1,8 @@
-sudo: required
-
-services:
-  - docker
-
+language: node_js
+node_js:
+  - "4.4.x"
 before_install:
-  - env | grep TRAVIS > .env
-  - docker pull yaktor/node:0.39.0
-  - ./run.sh npm install
-  - ./run.sh npm run gen-src
-
-script:
-  - ./run.sh npm run ci
-
+  - npm install
+  - npm run gen-src
 after_success:
   - ./run.sh ./travis-npm-publish.sh
