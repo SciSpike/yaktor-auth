@@ -6,7 +6,7 @@ var serverName = 'test'
 var serverCfg = {
   auth: require(path.resolve('bin', 'static', 'secure', 'config', 'servers', '_', 'auth')),
   path: {
-    actionsPath: 'actions'
+    actionsPath: 'actions/DEFAULT'
   }
 }
 function Global (m) {
