@@ -6,4 +6,4 @@ node_js:
 before_script:
   - npm run gen-src
 after_success:
-  - ./run.sh ./travis-npm-publish.sh
+  - ./travis-npm-publish.sh
