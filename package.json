@@ -41,7 +41,7 @@
     "standard": "8.0.0",
     "supertest-session": "2.0.1",
     "winston": "2.2.0",
-    "yaktor": "0.58.x",
+    "yaktor": "0.59.x",
     "yaktor-lang": "0.53.x"
   },
   "scripts": {
