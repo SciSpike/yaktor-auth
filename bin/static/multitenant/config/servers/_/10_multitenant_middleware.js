@@ -37,7 +37,7 @@ module.exports = function (ctx, done) {
   var regexes = Object.keys(actions).map(function (p) {
     return new RegExp(p)
   })
-  tenant.use(passport.authorize('authorize', {
+  tenant.use(passport.authorize('yaktor-authorize', {
     actions: actions,
     regexes: regexes
   }))
